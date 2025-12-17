@@ -1,0 +1,79 @@
+[
+    {
+      "name": "Quản lý sự kiện",
+      "key": "event",
+      "functions": [
+        {
+          "name": "Danh mục sự kiện",
+          "key": "event.category",
+          "description": "Quản lý danh mục sự kiện",
+          "actions": [
+            { "method": "Xem", "key": "event.category.view", "patchRequire": [] },
+            { "method": "Thêm", "key": "event.category.add", "patchRequire": [] },
+            { "method": "Sửa", "key": "event.category.edit", "patchRequire": [] },
+            { "method": "Xóa", "key": "event.category.delete", "patchRequire": [] }
+          ]
+        },
+        {
+          "name": "Sự kiện",
+          "key": "event.manage",
+          "description": "Quản lý sự kiện",
+          "actions": [
+            { "method": "Xem", "key": "event.manage.view", "patchRequire": [] },
+            { "method": "Thêm", "key": "event.manage.add", "patchRequire": [] },
+            { "method": "Sửa", "key": "event.manage.edit", "patchRequire": [] },
+            { "method": "Xóa", "key": "event.manage.delete", "patchRequire": [] }
+          ]
+        }
+      ],
+      "actions": []
+    },
+    {
+      "name": "Quản lý đơn vé",
+      "key": "ticket.order",
+      "functions": [
+        {
+          "name": "Đơn vé",
+          "key": "ticket.order.manage",
+          "description": "Quản lý đơn vé",
+          "actions": [
+            { "method": "Xem", "key": "ticket.order.manage.view", "patchRequire": [] },
+            { "method": "Sửa", "key": "ticket.order.manage.edit", "patchRequire": [] }
+          ]
+        }
+      ],
+      "actions": []
+    },
+    {
+      "name": "Quản trị hệ thống",
+      "key": "system",
+      "functions": [
+        {
+          "name": "Tập quyền",
+          "key": "system.policy",
+          "description": "Quản lý tập quyền",
+          "actions": [
+            { "method": "Xem", "key": "system.policy.view", "patchRequire": ["/api/management/policy/get", "/api/management/policy/list", "/api/management/policy/all"] },
+            { "method": "Thêm", "key": "system.policy.add", "patchRequire": ["/api/management/policy/add"] },
+            { "method": "Sửa", "key": "system.policy.edit", "patchRequire": ["/api/management/policy/update"] },
+            { "method": "Xóa", "key": "system.policy.delete", "patchRequire": ["/api/management/policy/delete"] }
+          ]
+        },
+        {
+          "name": "Quản lý người dùng",
+          "key": "system.user",
+          "description": "Quản lý người dùng",
+          "actions": [
+            { "method": "Xem", "key": "system.user.view", "patchRequire": ["/api/management/users/get", "/api/management/users/getByUsername", "/api/management/users/list"] },
+            { "method": "Thêm", "key": "system.user.add", "patchRequire": ["/api/management/users/add"] },
+            { "method": "Sửa", "key": "system.user.edit", "patchRequire": ["/api/management/users/update"] },
+            { "method": "Xóa", "key": "system.user.delete", "patchRequire": ["/api/management/users/delete"] }
+          ]
+        }
+      ],
+      "actions": []
+    }
+  ]
+  
+  
+  

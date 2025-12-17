@@ -1,0 +1,51 @@
+# Multi-stage build for Portal API
+# Stage 1: Build
+FROM maven:3.9-eclipse-temurin-21 AS build
+
+WORKDIR /app
+
+# Copy pom files first for better layer caching
+COPY pom.xml .
+COPY restaurant-start-portal/pom.xml ./restaurant-start-portal/
+COPY restaurant-controller-portal/pom.xml ./restaurant-controller-portal/
+COPY restaurant-application/pom.xml ./restaurant-application/
+COPY restaurant-infrastructure/pom.xml ./restaurant-infrastructure/
+COPY restaurant-domain/pom.xml ./restaurant-domain/
+
+# Create a temporary pom.xml with only required modules for portal build
+RUN sed -i '/<module>restaurant-start-management<\/module>/d; /<module>restaurant-controller-management<\/module>/d' pom.xml
+
+# Copy source code
+COPY restaurant-start-portal/src ./restaurant-start-portal/src
+COPY restaurant-controller-portal/src ./restaurant-controller-portal/src
+COPY restaurant-application/src ./restaurant-application/src
+COPY restaurant-infrastructure/src ./restaurant-infrastructure/src
+COPY restaurant-domain/src ./restaurant-domain/src
+
+# Build the application
+# -pl: project list (specify which modules to build)
+# -am: also-make (build dependencies too)
+RUN mvn clean package -DskipTests -B -pl restaurant-start-portal -am
+
+# Stage 2: Runtime
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Copy the executable JAR file from build stage (exclude original and sources JARs)
+COPY --from=build /app/restaurant-start-portal/target/restaurant-start-portal-*.jar app.jar
+
+# Expose port
+EXPOSE 8082
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]
+

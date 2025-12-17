@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/restaurant-application/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-application/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-controller-management/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-controller-management/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-controller-portal/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-controller-portal/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-controller/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-controller/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-domain/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-domain/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-infrastructure/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-infrastructure/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-start-management/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-start-management/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-start-portal/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-start-portal/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-start/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/restaurant-start/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+  </component>
+</project>

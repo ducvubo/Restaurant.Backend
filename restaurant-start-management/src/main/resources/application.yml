@@ -1,0 +1,95 @@
+server:
+  port: 14000
+  tomcat:
+    threads:
+      max: 500
+      min-spare: 50
+    accept-count: 20000
+
+spring:
+  application:
+    name: restaurant-backend-management
+  web:
+    resources:
+      static-locations: classpath:/static/
+      add-mappings: true
+  # PostgreSQL Database
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+    url: jdbc:postgresql://160.191.245.32:5432/restaurant_db
+    username: vuducbo
+    password: Duc17052003*
+    driver-class-name: org.postgresql.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+
+  jpa:
+    database: postgresql
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  jackson:
+    serialization:
+      indent-output: true
+      write-dates-as-timestamps: false  # Không serialize dates thành timestamps, dùng ISO-8601 format
+    time-zone: UTC  # Set timezone UTC cho Jackson
+
+# SpringDoc OpenAPI (Swagger) Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    filter: true
+    display-request-duration: true
+    show-common-extensions: true
+    show-extensions: true
+    default-model-expand-depth: 1
+    default-models-expand-depth: 1
+    config-url: /api-docs/swagger-config
+    urls:
+      - url: /api-docs
+        name: Restaurant Management API
+    disable-swagger-default-url: true
+    custom-js: /api/custom.js
+    custom-css: /api/custom.css
+  show-actuator: false
+  use-management-port: false
+
+# Spring Boot Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+  health:
+    db:
+      enabled: true
+
+# JWT Configuration
+jwt:
+  token:
+    secret: restaurant-management-token-secret-key-should-be-at-least-256-bits-long-for-security-purposes-please-change-in-production
+    issuer: restaurant-management
+    audience: restaurant-management
+    expiration: 86400000  # 24 hours in milliseconds
+  refresh:
+    secret: restaurant-management-refresh-secret-key-should-be-at-least-256-bits-long-for-security-purposes-please-change-in-production
+    issuer: restaurant-management
+    audience: restaurant-management
+    expiration: 604800000  # 7 days in milliseconds
+

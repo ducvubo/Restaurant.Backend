@@ -1,0 +1,35 @@
+name: Build & Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+  DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Docker Hub login
+      - name: Docker Hub login
+        run: echo "${DOCKER_HUB_PASSWORD}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
+
+      # 3. Build & Push Management
+      - name: Build & Push Management
+        run: |
+          docker build -f ./Dockerfile.management -t ${DOCKER_HUB_USERNAME}/restaurant-backend-management .
+          docker push ${DOCKER_HUB_USERNAME}/restaurant-backend-management
+
+      # 4. Build & Push Portal
+      - name: Build & Push Portal
+        run: |
+          docker build -f ./Dockerfile.portal -t ${DOCKER_HUB_USERNAME}/restaurant-backend-portal .
+          docker push ${DOCKER_HUB_USERNAME}/restaurant-backend-portal
