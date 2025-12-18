@@ -22,6 +22,7 @@ public class InventoryLedgerDTO {
     private String inventoryMethod;  // FIFO, LIFO
     private BigDecimal quantity;
     private UUID unitId;
+    private String unitName;
     private BigDecimal unitPrice;
     private BigDecimal remainingQuantity;
     private String batchNumber;

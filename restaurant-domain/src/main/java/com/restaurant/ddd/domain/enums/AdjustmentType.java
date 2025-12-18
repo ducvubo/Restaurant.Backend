@@ -5,7 +5,8 @@ package com.restaurant.ddd.domain.enums;
  */
 public enum AdjustmentType implements CodeEnum {
     INCREASE(1, "Điều chỉnh tăng"),
-    DECREASE(2, "Điều chỉnh giảm");
+    DECREASE(2, "Điều chỉnh giảm"),
+    INVENTORY_COUNT(3, "Kiểm kê kho");
 
     private final Integer code;
     private final String message;

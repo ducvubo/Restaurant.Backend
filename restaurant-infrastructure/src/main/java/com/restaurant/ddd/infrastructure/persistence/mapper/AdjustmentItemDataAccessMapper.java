@@ -16,6 +16,7 @@ public class AdjustmentItemDataAccessMapper {
         entity.setMaterialId(domain.getMaterialId());
         entity.setUnitId(domain.getUnitId());
         entity.setQuantity(domain.getQuantity());
+        entity.setInventoryLedgerId(domain.getInventoryLedgerId());
         entity.setNotes(domain.getNotes());
         entity.setCreatedDate(domain.getCreatedDate());
         return entity;
@@ -30,6 +31,7 @@ public class AdjustmentItemDataAccessMapper {
         domain.setMaterialId(entity.getMaterialId());
         domain.setUnitId(entity.getUnitId());
         domain.setQuantity(entity.getQuantity());
+        domain.setInventoryLedgerId(entity.getInventoryLedgerId());
         domain.setNotes(entity.getNotes());
         domain.setCreatedDate(entity.getCreatedDate());
         return domain;

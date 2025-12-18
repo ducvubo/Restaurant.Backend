@@ -179,7 +179,7 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
         
         // Map to DTOs
         List<AdjustmentTransactionDTO> dtos = page.getContent().stream()
-                .map(this::toDTO)
+                .map(this::toListDTO)
                 .collect(Collectors.toList());
         
         // Build response
@@ -473,6 +473,30 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
 
         return dto;
     }
+    
+    // Lightweight DTO conversion for list (without items)
+    private AdjustmentTransactionDTO toListDTO(AdjustmentTransaction transaction) {
+        AdjustmentTransactionDTO dto = new AdjustmentTransactionDTO();
+        dto.setId(transaction.getId());
+        dto.setTransactionCode(transaction.getTransactionCode());
+        dto.setWarehouseId(transaction.getWarehouseId());
+        dto.setAdjustmentType(transaction.getAdjustmentType().code());
+        dto.setTransactionDate(transaction.getTransactionDate());
+        dto.setReason(transaction.getReason());
+        dto.setReferenceNumber(transaction.getReferenceNumber());
+        dto.setNotes(transaction.getNotes());
+        dto.setIsLocked(transaction.getIsLocked());
+
+        // Get warehouse name
+        warehouseRepository.findById(transaction.getWarehouseId())
+                .ifPresent(w -> dto.setWarehouseName(w.getName()));
+
+        // Get adjustment type name
+        dto.setAdjustmentTypeName(transaction.getAdjustmentType().message());
+        
+        // No items loaded for list view
+        return dto;
+    }
 
     private AdjustmentItemDTO toItemDTO(AdjustmentItem item) {
         AdjustmentItemDTO dto = new AdjustmentItemDTO();
@@ -480,6 +504,7 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
         dto.setMaterialId(item.getMaterialId());
         dto.setUnitId(item.getUnitId());
         dto.setQuantity(item.getQuantity());
+        dto.setInventoryLedgerId(item.getInventoryLedgerId());
         dto.setNotes(item.getNotes());
 
         // Get material name and unit
@@ -490,6 +515,20 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
                     unitRepository.findById(item.getUnitId())
                             .ifPresent(u -> dto.setUnitName(u.getName()));
                 });
+
+        // Get batch number if this item is from inventory count
+        if (item.getInventoryLedgerId() != null) {
+            inventoryLedgerRepository.findById(item.getInventoryLedgerId())
+                    .ifPresent(ledger -> {
+                        String batchNumber = ledger.getBatchNumber();
+                        if (batchNumber == null || batchNumber.isEmpty()) {
+                            batchNumber = ledger.getTransactionCode() != null 
+                                ? ledger.getTransactionCode() 
+                                : "BATCH-" + ledger.getId().toString().substring(0, 8);
+                        }
+                        dto.setBatchNumber(batchNumber);
+                    });
+        }
 
         return dto;
     }

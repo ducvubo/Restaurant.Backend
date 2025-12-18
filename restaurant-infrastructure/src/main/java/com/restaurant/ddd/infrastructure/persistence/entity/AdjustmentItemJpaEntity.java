@@ -28,6 +28,9 @@ public class AdjustmentItemJpaEntity {
     @Column(name = "QUANTITY", nullable = false, precision = 15, scale = 3)
     private BigDecimal quantity;
 
+    @Column(name = "INVENTORY_LEDGER_ID")  // Nullable - chỉ có khi từ kiểm kê
+    private UUID inventoryLedgerId;
+
     @Column(name = "NOTES", length = 500)
     private String notes;
 

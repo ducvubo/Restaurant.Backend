@@ -27,6 +27,7 @@
     <bytecodeTargetLevel>
       <module name="restaurant-controller" target="21" />
       <module name="restaurant-start" target="21" />
+      <module name="user-service" target="17" />
     </bytecodeTargetLevel>
   </component>
 </project>

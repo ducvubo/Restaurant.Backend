@@ -15,13 +15,13 @@ const binder = setInterval(() => {
     try {
         const logoLink = document.querySelector("#swagger-ui a.link");
         const logoImg = document.querySelector("#swagger-ui a.link > svg");
-        if (logoImg) {
-            logoImg?.remove();
-            const img = document.createElement('img')
-            img.setAttribute("src", "/api/logo-white.svg")
-            logoLink.append(img);
-            clearInterval(binder);
-        }
+//        if (logoImg) {
+//            logoImg?.remove();
+//            const img = document.createElement('img')
+//            img.setAttribute("src", "/api/logo-white.svg")
+//            logoLink.append(img);
+//            clearInterval(binder);
+//        }
     }
     catch { }
 }, 100)
@@ -36,10 +36,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (link.parentNode) {
         document.head.removeChild(link);
     }
-    link = document.createElement('link');
-    link.type = 'image/x-icon';
-    link.rel = 'shortcut icon';
-    link.href = '/api/favicon.ico';
+//    link = document.createElement('link');
+//    link.type = 'image/x-icon';
+//    link.rel = 'shortcut icon';
+//    link.href = '/api/favicon.ico';
     document.getElementsByTagName('head')[0].appendChild(link);
 
     let title = document.querySelector("title") || document.createElement('title');

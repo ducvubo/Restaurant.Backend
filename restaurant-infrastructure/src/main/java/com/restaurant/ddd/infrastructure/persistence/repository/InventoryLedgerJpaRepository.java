@@ -35,4 +35,12 @@ public interface InventoryLedgerJpaRepository extends
     BigDecimal sumQuantityByWarehouseAndMaterial(
             @Param("warehouseId") UUID warehouseId, 
             @Param("materialId") UUID materialId);
+    
+    @Query("SELECT i FROM InventoryLedgerJpaEntity i " +
+           "WHERE i.warehouseId = :warehouseId " +
+           "AND i.remainingQuantity > :minQuantity " +
+           "ORDER BY i.materialId, i.transactionDate ASC")
+    List<InventoryLedgerJpaEntity> findByWarehouseIdAndRemainingQuantityGreaterThan(
+            @Param("warehouseId") UUID warehouseId,
+            @Param("minQuantity") BigDecimal minQuantity);
 }

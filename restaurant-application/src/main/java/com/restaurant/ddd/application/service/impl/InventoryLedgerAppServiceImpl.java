@@ -27,6 +27,7 @@ public class InventoryLedgerAppServiceImpl implements InventoryLedgerAppService 
     private final InventoryLedgerRepository inventoryLedgerRepository;
     private final WarehouseRepository warehouseRepository;
     private final MaterialRepository materialRepository;
+    private final com.restaurant.ddd.domain.respository.UnitRepository unitRepository;
 
     @Override
     public ResultMessage<InventoryLedgerListResponse> getList(InventoryLedgerListRequest request) {
@@ -93,6 +94,12 @@ public class InventoryLedgerAppServiceImpl implements InventoryLedgerAppService 
         if (dto != null) {
             warehouseRepository.findById(dto.getWarehouseId()).ifPresent(w -> dto.setWarehouseName(w.getName()));
             materialRepository.findById(dto.getMaterialId()).ifPresent(m -> dto.setMaterialName(m.getName()));
+            
+            // Load unit name
+            if (dto.getUnitId() != null) {
+                unitRepository.findById(dto.getUnitId()).ifPresent(u -> dto.setUnitName(u.getName()));
+            }
+            
             // TransactionCode đã có sẵn trong ledger.transactionCode
             dto.setTransactionCode(ledger.getTransactionCode());
         }

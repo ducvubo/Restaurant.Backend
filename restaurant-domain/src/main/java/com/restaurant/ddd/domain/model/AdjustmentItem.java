@@ -18,6 +18,7 @@ public class AdjustmentItem {
     private UUID materialId;
     private UUID unitId;
     private BigDecimal quantity;
+    private UUID inventoryLedgerId;  // Lô hàng cụ thể (nullable - chỉ có khi từ kiểm kê)
     private String notes;
     private LocalDateTime createdDate;
 
