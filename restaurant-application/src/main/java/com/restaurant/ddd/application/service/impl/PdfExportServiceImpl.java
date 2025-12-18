@@ -14,10 +14,13 @@ import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
+import com.restaurant.ddd.application.model.adjustment.AdjustmentTransactionDTO;
+import com.restaurant.ddd.application.model.stock.StockTransactionDTO;
+import com.restaurant.ddd.application.model.inventorycount.InventoryCountDTO;
 import com.restaurant.ddd.application.service.AdjustmentTransactionAppService;
+import com.restaurant.ddd.application.service.InventoryCountAppService;
 import com.restaurant.ddd.application.service.PdfExportService;
 import com.restaurant.ddd.application.service.StockTransactionAppService;
-import com.restaurant.ddd.application.model.adjustment.AdjustmentTransactionDTO;
 import com.restaurant.ddd.domain.enums.AdjustmentType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ public class PdfExportServiceImpl implements PdfExportService {
 
     private final AdjustmentTransactionAppService adjustmentService;
     private final StockTransactionAppService stockTransactionService;
+    private final InventoryCountAppService inventoryCountService;
     
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final DateTimeFormatter DATE_ONLY_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -412,6 +416,140 @@ public class PdfExportServiceImpl implements PdfExportService {
             
             document.add(signatureTable);
             
+            
+            document.close();
+            
+            return baos.toByteArray();
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi tạo file PDF: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public byte[] exportInventoryCountToPdf(UUID inventoryCountId) {
+        try {
+            // Fetch inventory count data
+            var transaction = inventoryCountService.get(inventoryCountId);
+            if (transaction == null) {
+                throw new RuntimeException("Đã xảy ra lỗi khi tải thông tin phiếu");
+            }
+            
+            // Create PDF in memory
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PdfWriter writer = new PdfWriter(baos);
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf, PageSize.A4);
+            document.setMargins(30, 30, 30, 30);
+            
+            // Use Times New Roman TrueType font from Windows for full Vietnamese support
+            PdfFont font = loadTimesNewRomanFont(false);
+            PdfFont boldFont = loadTimesNewRomanFont(true);
+            
+            // Add title
+            Paragraph titlePara = new Paragraph("PHIẾU KIỂM KÊ KHO")
+                .setFont(boldFont)
+                .setFontSize(18)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setMarginBottom(5);
+            document.add(titlePara);
+            
+            // Add count code
+            Paragraph codePara = new Paragraph("Mã phiếu: " + transaction.getCountCode())
+                .setFont(font)
+                .setFontSize(11)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setMarginBottom(15);
+            document.add(codePara);
+            
+            // Add transaction info
+            Table infoTable = new Table(UnitValue.createPercentArray(new float[]{1, 1}))
+                .useAllAvailableWidth()
+                .setMarginBottom(15);
+            
+            addInfoRow(infoTable, "Kho:", transaction.getWarehouseName(), font, boldFont);
+            addInfoRow(infoTable, "Ngày kiểm kê:", 
+                transaction.getCountDate().format(DATE_FORMATTER), font, boldFont);
+            addInfoRow(infoTable, "Trạng thái:", transaction.getCountStatusName(), font, boldFont);
+            
+            if (transaction.getAdjustmentTransactionCode() != null) {
+                addInfoRow(infoTable, "Phiếu điều chỉnh:", transaction.getAdjustmentTransactionCode(), font, boldFont);
+            }
+            
+            if (transaction.getPerformedByName() != null) {
+                addInfoRow(infoTable, "Người thực hiện:", transaction.getPerformedByName(), font, boldFont);
+            }
+            
+            if (transaction.getNotes() != null && !transaction.getNotes().isEmpty()) {
+                addInfoRow(infoTable, "Ghi chú:", transaction.getNotes(), font, boldFont);
+            }
+            
+            document.add(infoTable);
+            
+            // Add items table
+            Paragraph itemsTitle = new Paragraph("Chi tiết chênh lệch:")
+                .setFont(boldFont)
+                .setFontSize(12)
+                .setMarginBottom(10);
+            document.add(itemsTitle);
+            
+            // Items table with columns: STT, Tên nguyên liệu, Số lô, Hạn sử dụng, Đơn vị, Tồn sổ sách, Thực tế, Chênh lệch, Ghi chú
+            Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{1, 3, 2, 2, 2, 2, 2, 2, 3}))
+                .useAllAvailableWidth()
+                .setMarginBottom(20);
+            
+            // Table header
+            addTableHeader(itemsTable, "STT", boldFont);
+            addTableHeader(itemsTable, "Tên nguyên liệu", boldFont);
+            addTableHeader(itemsTable, "Số lô", boldFont);
+            addTableHeader(itemsTable, "Hạn SD", boldFont);
+            addTableHeader(itemsTable, "Đơn vị", boldFont);
+            addTableHeader(itemsTable, "Sổ sách", boldFont);
+            addTableHeader(itemsTable, "Thực tế", boldFont);
+            addTableHeader(itemsTable, "Chênh lệch", boldFont);
+            addTableHeader(itemsTable, "Ghi chú", boldFont);
+            
+            // Table rows
+            int index = 1;
+            java.math.BigDecimal totalDiff = java.math.BigDecimal.ZERO;
+            
+            if (transaction.getItems() != null) {
+                for (var item : transaction.getItems()) {
+                    addTableCell(itemsTable, String.valueOf(index++), font, TextAlignment.CENTER);
+                    addTableCell(itemsTable, item.getMaterialName(), font, TextAlignment.LEFT);
+                    addTableCell(itemsTable, item.getBatchNumber() != null ? item.getBatchNumber() : "-", font, TextAlignment.CENTER);
+                    addTableCell(itemsTable, item.getTransactionDate() != null ? item.getTransactionDate().format(DATE_ONLY_FORMATTER) : "-", font, TextAlignment.CENTER);
+                    addTableCell(itemsTable, item.getUnitName(), font, TextAlignment.CENTER);
+                    addTableCell(itemsTable, formatNumber(item.getSystemQuantity()), font, TextAlignment.RIGHT);
+                    addTableCell(itemsTable, formatNumber(item.getActualQuantity()), font, TextAlignment.RIGHT);
+                    addTableCell(itemsTable, formatNumber(item.getDifferenceQuantity()), font, TextAlignment.RIGHT);
+                    addTableCell(itemsTable, item.getNotes() != null ? item.getNotes() : "", font, TextAlignment.LEFT);
+                    
+                    if (item.getDifferenceQuantity() != null) {
+                        totalDiff = totalDiff.add(item.getDifferenceQuantity());
+                    }
+                }
+            }
+            
+            document.add(itemsTable);
+            
+            // Summary total difference
+            Paragraph totalPara = new Paragraph("Tổng chênh lệch: " + formatNumber(totalDiff))
+                .setFont(boldFont)
+                .setFontSize(12)
+                .setTextAlignment(TextAlignment.RIGHT)
+                .setMarginBottom(20);
+            document.add(totalPara);
+            
+            // Add signature section
+            Table signatureTable = new Table(UnitValue.createPercentArray(new float[]{1, 1}))
+                .useAllAvailableWidth()
+                .setMarginTop(30);
+            
+            addSignatureCell(signatureTable, "Người kiểm kê", font, boldFont);
+            addSignatureCell(signatureTable, "Thủ kho", font, boldFont);
+            
+            document.add(signatureTable);
             
             document.close();
             

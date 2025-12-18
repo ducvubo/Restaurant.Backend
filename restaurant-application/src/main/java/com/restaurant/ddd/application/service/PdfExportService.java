@@ -20,4 +20,11 @@ public interface PdfExportService {
      * @return PDF file as byte array
      */
     byte[] exportStockTransactionToPdf(UUID stockTransactionId);
+    
+    /**
+     * Export inventory count to PDF
+     * @param inventoryCountId ID of the inventory count
+     * @return PDF file as byte array
+     */
+    byte[] exportInventoryCountToPdf(UUID inventoryCountId);
 }

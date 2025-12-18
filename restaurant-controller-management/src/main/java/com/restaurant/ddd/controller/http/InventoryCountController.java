@@ -2,6 +2,7 @@ package com.restaurant.ddd.controller.http;
 
 import com.restaurant.ddd.application.model.inventorycount.*;
 import com.restaurant.ddd.application.service.InventoryCountAppService;
+import com.restaurant.ddd.application.service.PdfExportService;
 import com.restaurant.ddd.controller.http.model.enums.ResultUtil;
 import com.restaurant.ddd.controller.http.model.vo.ResultMessage;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class InventoryCountController {
     
     private final InventoryCountAppService inventoryCountAppService;
+    private final PdfExportService pdfExportService;
     
     @Operation(summary = "Tạo phiếu kiểm kê")
     @PostMapping
@@ -78,6 +80,36 @@ public class InventoryCountController {
     public ResponseEntity<ResultMessage<InventoryCountDTO>> cancel(@RequestParam(name = "id") UUID id) {
         InventoryCountDTO result = inventoryCountAppService.cancel(id);
         return ResponseEntity.ok(ResultUtil.data(result, "Hủy phiếu kiểm kê thành công"));
+    }
+    
+    @Operation(summary = "Xuất PDF phiếu kiểm kê")
+    @GetMapping("/export-pdf")
+    public ResponseEntity<byte[]> exportPdf(@RequestParam(name = "id") UUID id) {
+        try {
+            // Get inventory count to determine filename
+            InventoryCountDTO transaction = inventoryCountAppService.get(id);
+            if (transaction == null) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            String filename = String.format("Phieu_KiemKe_%s.pdf", transaction.getCountCode());
+            
+            // Generate PDF
+            byte[] pdfBytes = pdfExportService.exportInventoryCountToPdf(id);
+            
+            // Set headers for PDF download
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+            
+            return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
+                
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }
 
