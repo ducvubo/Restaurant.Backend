@@ -61,7 +61,22 @@ public class SupplierController {
 
     @Operation(summary = "Lấy danh sách nhà cung cấp với phân trang")
     @GetMapping("/list")
-    public ResultMessage<SupplierListResponse> getList(@ModelAttribute SupplierListRequest request) {
+    public ResultMessage<SupplierListResponse> getList(
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", required = false) Integer size,
+            @RequestParam(name = "sortBy", required = false) String sortBy,
+            @RequestParam(name = "sortDirection", required = false) String sortDirection,
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "status", required = false) Integer status
+    ) {
+        SupplierListRequest request = new SupplierListRequest();
+        if (page != null) request.setPage(page);
+        if (size != null) request.setSize(size);
+        request.setSortBy(sortBy);
+        request.setSortDirection(sortDirection);
+        request.setKeyword(keyword);
+        request.setStatus(status);
+        
         SupplierListResponse response = supplierAppService.getList(request);
         return ResultUtil.data(response, "Lấy danh sách nhà cung cấp thành công");
     }

@@ -1,13 +1,10 @@
 package com.restaurant.ddd.application.model.adjustment;
 
+import com.restaurant.ddd.application.model.common.PageResponse;
 import lombok.Data;
-
-import java.util.List;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class AdjustmentListResponse {
-    private List<AdjustmentTransactionDTO> items;
-    private int total;
-    private int page;
-    private int size;
+@EqualsAndHashCode(callSuper = true)
+public class AdjustmentListResponse extends PageResponse<AdjustmentTransactionDTO> {
 }

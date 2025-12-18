@@ -6,8 +6,11 @@ import com.restaurant.ddd.domain.respository.PolicyRepository;
 import com.restaurant.ddd.infrastructure.persistence.entity.PolicyJpaEntity;
 import com.restaurant.ddd.infrastructure.persistence.mapper.PolicyDataAccessMapper;
 import com.restaurant.ddd.infrastructure.persistence.mapper.PolicyJpaRepository;
+import com.restaurant.ddd.infrastructure.persistence.specification.PolicySpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,6 +51,14 @@ public class PolicyRepositoryImpl implements PolicyRepository {
         return policyJpaRepository.findAll().stream()
                 .map(policyDataAccessMapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<Policy> findAll(String keyword, Integer status, Pageable pageable) {
+        return policyJpaRepository.findAll(
+                PolicySpecification.buildSpec(keyword, status),
+                pageable
+        ).map(policyDataAccessMapper::toDomain);
     }
 
     @Override

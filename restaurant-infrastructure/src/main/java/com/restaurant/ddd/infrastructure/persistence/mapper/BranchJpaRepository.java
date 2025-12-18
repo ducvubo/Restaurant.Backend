@@ -3,6 +3,7 @@ package com.restaurant.ddd.infrastructure.persistence.mapper;
 import com.restaurant.ddd.domain.enums.DataStatus;
 import com.restaurant.ddd.infrastructure.persistence.entity.BranchJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface BranchJpaRepository extends JpaRepository<BranchJpaEntity, UUID> {
+public interface BranchJpaRepository extends JpaRepository<BranchJpaEntity, UUID>, JpaSpecificationExecutor<BranchJpaEntity> {
     
     @Query("SELECT b FROM BranchJpaEntity b WHERE b.status = :status")
     List<BranchJpaEntity> findByStatus(@Param("status") DataStatus status);

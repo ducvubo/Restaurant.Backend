@@ -5,8 +5,11 @@ import com.restaurant.ddd.domain.model.Branch;
 import com.restaurant.ddd.domain.respository.BranchRepository;
 import com.restaurant.ddd.infrastructure.persistence.mapper.BranchDataAccessMapper;
 import com.restaurant.ddd.infrastructure.persistence.mapper.BranchJpaRepository;
+import com.restaurant.ddd.infrastructure.persistence.specification.BranchSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -44,6 +47,14 @@ public class BranchRepositoryImpl implements BranchRepository {
         return branchJpaRepository.findAll().stream()
                 .map(BranchDataAccessMapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<Branch> findAll(String keyword, Integer status, Pageable pageable) {
+        return branchJpaRepository.findAll(
+                BranchSpecification.buildSpec(keyword, status),
+                pageable
+        ).map(BranchDataAccessMapper::toDomain);
     }
 
     @Override

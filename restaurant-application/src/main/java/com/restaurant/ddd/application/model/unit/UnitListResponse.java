@@ -1,13 +1,10 @@
 package com.restaurant.ddd.application.model.unit;
 
+import com.restaurant.ddd.application.model.common.PageResponse;
 import lombok.Data;
-
-import java.util.List;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class UnitListResponse {
-    private List<UnitDTO> items;
-    private Integer page;
-    private Integer size;
-    private Long total;
+@EqualsAndHashCode(callSuper = true)
+public class UnitListResponse extends PageResponse<UnitDTO> {
 }

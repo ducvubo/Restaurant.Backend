@@ -1,14 +1,11 @@
 package com.restaurant.ddd.application.model.user;
 
+import com.restaurant.ddd.application.model.common.PageResponse;
 import lombok.Data;
-
-import java.util.List;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class PolicyListResponse {
-    private List<PolicyDTO> items;
-    private Integer page;
-    private Integer size;
-    private Long total;
+@EqualsAndHashCode(callSuper = true)
+public class PolicyListResponse extends PageResponse<PolicyDTO> {
 }
 

@@ -9,6 +9,7 @@ import com.restaurant.ddd.application.model.branch.UpdateBranchRequest;
 import com.restaurant.ddd.application.service.BranchAppService;
 import com.restaurant.ddd.domain.enums.DataStatus;
 import com.restaurant.ddd.domain.model.Branch;
+import com.restaurant.ddd.domain.respository.BranchRepository;
 import com.restaurant.ddd.domain.service.BranchDomainService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,9 @@ public class BranchAppServiceImpl implements BranchAppService {
 
     @Autowired
     private BranchDomainService branchDomainService;
+    
+    @Autowired
+    private BranchRepository branchRepository;
 
     @Override
     @Transactional
@@ -128,41 +132,35 @@ public class BranchAppServiceImpl implements BranchAppService {
         log.info("Branch Application Service: getList - keyword: {}, status: {}, page: {}, size: {}", 
                 request.getKeyword(), request.getStatus(), request.getPage(), request.getSize());
         
-        List<Branch> allBranches = branchDomainService.findAll();
+        // Build Pageable with sorting
+        String sortField = request.getSortBy() != null ? request.getSortBy() : "createdDate";
+        String sortDirection = request.getSortDirection() != null ? request.getSortDirection() : "desc";
         
-        // Filter by keyword
-        if (request.getKeyword() != null && !request.getKeyword().trim().isEmpty()) {
-            String keyword = request.getKeyword().toLowerCase();
-            allBranches = allBranches.stream()
-                    .filter(b -> (b.getName() != null && b.getName().toLowerCase().contains(keyword)) ||
-                                (b.getCode() != null && b.getCode().toLowerCase().contains(keyword)) ||
-                                (b.getEmail() != null && b.getEmail().toLowerCase().contains(keyword)) ||
-                                (b.getPhone() != null && b.getPhone().toLowerCase().contains(keyword)) ||
-                                (b.getAddress() != null && b.getAddress().toLowerCase().contains(keyword)))
-                    .collect(Collectors.toList());
-        }
+        org.springframework.data.domain.Sort.Direction direction = 
+            "asc".equalsIgnoreCase(sortDirection) 
+                ? org.springframework.data.domain.Sort.Direction.ASC 
+                : org.springframework.data.domain.Sort.Direction.DESC;
         
-        // Filter by status
-        if (request.getStatus() != null) {
-            allBranches = allBranches.stream()
-                    .filter(b -> b.getStatus() != null && b.getStatus().code().equals(request.getStatus()))
-                    .collect(Collectors.toList());
-        }
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            request.getPage() - 1,
+            request.getSize(),
+            org.springframework.data.domain.Sort.by(direction, sortField)
+        );
         
-        // Pagination
-        int page = request.getPage() != null && request.getPage() > 0 ? request.getPage() - 1 : 0;
-        int size = request.getSize() != null && request.getSize() > 0 ? request.getSize() : 10;
-        int total = allBranches.size();
-        int start = page * size;
-        int end = Math.min(start + size, total);
+        // Call repository with filters
+        org.springframework.data.domain.Page<Branch> page = branchRepository.findAll(
+            request.getKeyword(),
+            request.getStatus(),
+            pageable
+        );
         
-        List<Branch> pagedBranches = start < total ? allBranches.subList(start, end) : new ArrayList<>();
-        
+        // Map to DTOs
         BranchListResponse response = new BranchListResponse();
-        response.setItems(pagedBranches.stream().map(BranchMapper::toDTO).collect(Collectors.toList()));
-        response.setPage(request.getPage() != null && request.getPage() > 0 ? request.getPage() : 1);
-        response.setSize(size);
-        response.setTotal((long) total);
+        response.setItems(page.getContent().stream().map(BranchMapper::toDTO).collect(Collectors.toList()));
+        response.setPage(request.getPage());
+        response.setSize(request.getSize());
+        response.setTotal(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
         
         return response;
     }

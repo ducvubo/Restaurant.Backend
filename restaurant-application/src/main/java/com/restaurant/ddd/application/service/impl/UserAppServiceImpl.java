@@ -10,6 +10,7 @@ import com.restaurant.ddd.application.service.UserAppService;
 import com.restaurant.ddd.domain.enums.DataStatus;
 import com.restaurant.ddd.domain.model.User;
 import com.restaurant.ddd.domain.model.UserPolicy;
+import com.restaurant.ddd.domain.respository.UserRepository;
 import com.restaurant.ddd.domain.service.AuthDomainService;
 import com.restaurant.ddd.domain.service.UserDomainService;
 import com.restaurant.ddd.domain.service.UserPolicyDomainService;
@@ -29,6 +30,9 @@ public class UserAppServiceImpl implements UserAppService {
 
     @Autowired
     private UserDomainService userDomainService;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private AuthDomainService authDomainService;
@@ -113,45 +117,39 @@ public class UserAppServiceImpl implements UserAppService {
         log.info("User Application Service: getList - keyword: {}, status: {}, page: {}, size: {}",
                 request.getKeyword(), request.getStatus(), request.getPage(), request.getSize());
         
-        List<User> allUsers = userDomainService.findAll();
+        // Build Pageable with sorting
+        String sortField = request.getSortBy() != null ? request.getSortBy() : "createdDate";
+        String sortDirection = request.getSortDirection() != null ? request.getSortDirection() : "desc";
         
-        // Filter by keyword
-        if (request.getKeyword() != null && !request.getKeyword().trim().isEmpty()) {
-            String keyword = request.getKeyword().toLowerCase();
-            allUsers = allUsers.stream()
-                    .filter(u -> (u.getUsername() != null && u.getUsername().toLowerCase().contains(keyword)) ||
-                                (u.getEmail() != null && u.getEmail().toLowerCase().contains(keyword)) ||
-                                (u.getFullName() != null && u.getFullName().toLowerCase().contains(keyword)) ||
-                                (u.getPhone() != null && u.getPhone().toLowerCase().contains(keyword)) ||
-                                (u.getAddress() != null && u.getAddress().toLowerCase().contains(keyword)))
-                    .collect(Collectors.toList());
-        }
+        org.springframework.data.domain.Sort.Direction direction = 
+            "asc".equalsIgnoreCase(sortDirection) 
+                ? org.springframework.data.domain.Sort.Direction.ASC 
+                : org.springframework.data.domain.Sort.Direction.DESC;
         
-        // Filter by status
-        if (request.getStatus() != null) {
-            allUsers = allUsers.stream()
-                    .filter(u -> u.getStatus() != null && u.getStatus().code().equals(request.getStatus()))
-                    .collect(Collectors.toList());
-        }
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            request.getPage() - 1,
+            request.getSize(),
+            org.springframework.data.domain.Sort.by(direction, sortField)
+        );
         
-        // Pagination
-        int page = request.getPage() != null && request.getPage() > 0 ? request.getPage() - 1 : 0;
-        int size = request.getSize() != null && request.getSize() > 0 ? request.getSize() : 10;
-        int total = allUsers.size();
-        int start = page * size;
-        int end = Math.min(start + size, total);
+        // Call repository with filters
+        org.springframework.data.domain.Page<User> page = userRepository.findAll(
+            request.getKeyword(),
+            request.getStatus(),
+            pageable
+        );
         
-        List<User> pagedUsers = start < total ? allUsers.subList(start, end) : new ArrayList<>();
-        
+        // Map to DTOs
         UserListResponse response = new UserListResponse();
-        response.setItems(pagedUsers.stream().map(u -> {
+        response.setItems(page.getContent().stream().map(u -> {
             UserDTO dto = UserMapper.toDTO(u);
             dto.setPolicyIds(userPolicyDomainService.findPolicyIdsByUserId(u.getId()));
             return dto;
         }).collect(Collectors.toList()));
-        response.setPage(request.getPage() != null && request.getPage() > 0 ? request.getPage() : 1);
-        response.setSize(size);
-        response.setTotal((long) total);
+        response.setPage(request.getPage());
+        response.setSize(request.getSize());
+        response.setTotal(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
         
         return response;
     }

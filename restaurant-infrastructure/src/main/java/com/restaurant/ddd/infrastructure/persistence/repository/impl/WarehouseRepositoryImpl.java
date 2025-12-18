@@ -53,4 +53,18 @@ public class WarehouseRepositoryImpl implements WarehouseRepository {
     public List<Warehouse> findByBranch(UUID branchId) {
         return warehouseDataAccessMapper.warehouseJpaEntitiesToWarehouses(warehouseJpaRepository.findByBranchId(branchId));
     }
+    
+    @Override
+    public org.springframework.data.domain.Page<Warehouse> findAll(
+            String keyword,
+            Integer status,
+            UUID branchId,
+            Integer warehouseType,
+            org.springframework.data.domain.Pageable pageable) {
+        
+        return warehouseJpaRepository.findAll(
+                com.restaurant.ddd.infrastructure.persistence.specification.WarehouseSpecification.buildSpec(keyword, status, branchId, warehouseType),
+                pageable
+        ).map(warehouseDataAccessMapper::warehouseJpaEntityToWarehouse);
+    }
 }

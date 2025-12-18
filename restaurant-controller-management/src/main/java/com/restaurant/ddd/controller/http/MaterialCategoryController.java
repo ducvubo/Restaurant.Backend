@@ -54,8 +54,8 @@ public class MaterialCategoryController {
             @RequestParam(name = "keyword", required = false) String keyword
     ) {
         MaterialCategoryListRequest request = new MaterialCategoryListRequest();
-        request.setPage(page);
-        request.setSize(size);
+        if (page != null) request.setPage(page);
+        if (size != null) request.setSize(size);
         request.setKeyword(keyword);
         var result = service.getList(request);
         return ResponseEntity.ok(ResultUtil.data(result.getData(), result.getMessage()));

@@ -53,4 +53,17 @@ public class MaterialRepositoryImpl implements MaterialRepository {
     public List<Material> findByCategory(String category) {
         return materialDataAccessMapper.materialJpaEntitiesToMaterials(materialJpaRepository.findByCategory(category));
     }
+    
+    @Override
+    public org.springframework.data.domain.Page<Material> findAll(
+            String keyword,
+            Integer status,
+            String category,
+            org.springframework.data.domain.Pageable pageable) {
+        
+        return materialJpaRepository.findAll(
+                com.restaurant.ddd.infrastructure.persistence.specification.MaterialSpecification.buildSpec(keyword, status, category),
+                pageable
+        ).map(materialDataAccessMapper::materialJpaEntityToMaterial);
+    }
 }

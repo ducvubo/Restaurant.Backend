@@ -1,5 +1,6 @@
 package com.restaurant.ddd.controller.http;
 
+import com.restaurant.ddd.application.model.adjustment.AdjustmentListRequest;
 import com.restaurant.ddd.application.model.adjustment.AdjustmentListResponse;
 import com.restaurant.ddd.application.model.adjustment.AdjustmentTransactionDTO;
 import com.restaurant.ddd.application.model.adjustment.AdjustmentTransactionRequest;
@@ -58,9 +59,28 @@ public class AdjustmentTransactionController {
 
     @GetMapping("/list")
     public ResponseEntity<ResultMessage<AdjustmentListResponse>> listAdjustments(
+            @RequestParam(name = "warehouseId", required = false) UUID warehouseId,
+            @RequestParam(name = "materialId", required = false) UUID materialId,
+            @RequestParam(name = "fromDate", required = false) java.time.LocalDateTime fromDate,
+            @RequestParam(name = "toDate", required = false) java.time.LocalDateTime toDate,
+            @RequestParam(name = "status", required = false) Integer status,
             @RequestParam(name = "page", required = false, defaultValue = "1") int page,
-            @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
-        var result = adjustmentService.listAdjustments(page, size);
+            @RequestParam(name = "size", required = false, defaultValue = "10") int size,
+            @RequestParam(name = "sortBy", required = false) String sortBy,
+            @RequestParam(name = "sortDirection", required = false) String sortDirection) {
+        
+        AdjustmentListRequest request = new AdjustmentListRequest();
+        request.setWarehouseId(warehouseId);
+        request.setMaterialId(materialId);
+        request.setFromDate(fromDate);
+        request.setToDate(toDate);
+        request.setStatus(status);
+        request.setPage(page);
+        request.setSize(size);
+        request.setSortBy(sortBy);
+        request.setSortDirection(sortDirection);
+        
+        var result = adjustmentService.listAdjustments(request);
         return ResponseEntity.ok(ResultUtil.data(result.getData(), result.getMessage()));
     }
 

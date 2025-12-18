@@ -10,6 +10,7 @@ import com.restaurant.ddd.application.service.PolicyAppService;
 import com.restaurant.ddd.domain.enums.DataStatus;
 import com.restaurant.ddd.domain.model.Policy;
 import com.restaurant.ddd.domain.model.UserPolicy;
+import com.restaurant.ddd.domain.respository.PolicyRepository;
 import com.restaurant.ddd.domain.service.PolicyDomainService;
 import com.restaurant.ddd.domain.service.UserPolicyDomainService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,9 @@ public class PolicyAppServiceImpl implements PolicyAppService {
 
     @Autowired
     private PolicyDomainService policyDomainService;
+    
+    @Autowired
+    private PolicyRepository policyRepository;
 
     @Autowired
     private UserPolicyDomainService userPolicyDomainService;
@@ -79,38 +83,35 @@ public class PolicyAppServiceImpl implements PolicyAppService {
         log.info("Policy Application Service: getList - keyword: {}, status: {}, page: {}, size: {}", 
                 request.getKeyword(), request.getStatus(), request.getPage(), request.getSize());
         
-        List<Policy> allPolicies = policyDomainService.findAll();
+        // Build Pageable with sorting
+        String sortField = request.getSortBy() != null ? request.getSortBy() : "createdDate";
+        String sortDirection = request.getSortDirection() != null ? request.getSortDirection() : "desc";
         
-        // Filter by keyword
-        if (request.getKeyword() != null && !request.getKeyword().trim().isEmpty()) {
-            String keyword = request.getKeyword().toLowerCase();
-            allPolicies = allPolicies.stream()
-                    .filter(p -> (p.getName() != null && p.getName().toLowerCase().contains(keyword)) ||
-                                (p.getDescription() != null && p.getDescription().toLowerCase().contains(keyword)))
-                    .collect(Collectors.toList());
-        }
+        org.springframework.data.domain.Sort.Direction direction = 
+            "asc".equalsIgnoreCase(sortDirection) 
+                ? org.springframework.data.domain.Sort.Direction.ASC 
+                : org.springframework.data.domain.Sort.Direction.DESC;
         
-        // Filter by status
-        if (request.getStatus() != null) {
-            allPolicies = allPolicies.stream()
-                    .filter(p -> p.getStatus() != null && p.getStatus().code().equals(request.getStatus()))
-                    .collect(Collectors.toList());
-        }
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            request.getPage() - 1,
+            request.getSize(),
+            org.springframework.data.domain.Sort.by(direction, sortField)
+        );
         
-        // Pagination
-        int page = request.getPage() != null && request.getPage() > 0 ? request.getPage() - 1 : 0;
-        int size = request.getSize() != null && request.getSize() > 0 ? request.getSize() : 10;
-        int total = allPolicies.size();
-        int start = page * size;
-        int end = Math.min(start + size, total);
+        // Call repository with filters
+        org.springframework.data.domain.Page<Policy> page = policyRepository.findAll(
+            request.getKeyword(),
+            request.getStatus(),
+            pageable
+        );
         
-        List<Policy> pagedPolicies = start < total ? allPolicies.subList(start, end) : new ArrayList<>();
-        
+        // Map to DTOs
         PolicyListResponse response = new PolicyListResponse();
-        response.setItems(pagedPolicies.stream().map(PolicyMapper::toDTO).collect(Collectors.toList()));
-        response.setPage(request.getPage() != null && request.getPage() > 0 ? request.getPage() : 1);
-        response.setSize(size);
-        response.setTotal((long) total);
+        response.setItems(page.getContent().stream().map(PolicyMapper::toDTO).collect(Collectors.toList()));
+        response.setPage(request.getPage());
+        response.setSize(request.getSize());
+        response.setTotal(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
         
         return response;
     }

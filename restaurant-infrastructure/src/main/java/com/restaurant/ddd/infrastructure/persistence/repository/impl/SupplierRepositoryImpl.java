@@ -81,4 +81,16 @@ public class SupplierRepositoryImpl implements SupplierRepository {
     public boolean existsByEmail(String email) {
         return supplierJpaRepository.existsByEmail(email);
     }
+    
+    @Override
+    public org.springframework.data.domain.Page<Supplier> findAll(
+            String keyword,
+            Integer status,
+            org.springframework.data.domain.Pageable pageable) {
+        
+        return supplierJpaRepository.findAll(
+                com.restaurant.ddd.infrastructure.persistence.specification.SupplierSpecification.buildSpec(keyword, status),
+                pageable
+        ).map(supplierDataAccessMapper::toDomain);
+    }
 }

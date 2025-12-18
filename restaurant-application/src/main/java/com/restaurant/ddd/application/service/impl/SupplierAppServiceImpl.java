@@ -82,41 +82,37 @@ public class SupplierAppServiceImpl implements SupplierAppService {
 
     @Override
     public SupplierListResponse getList(SupplierListRequest request) {
-        List<Supplier> allSuppliers = supplierRepository.findAll();
-
-        // Filter by keyword
-        if (request.getKeyword() != null && !request.getKeyword().trim().isEmpty()) {
-            String keyword = request.getKeyword().toLowerCase();
-            allSuppliers = allSuppliers.stream()
-                    .filter(s -> (s.getCode() != null && s.getCode().toLowerCase().contains(keyword)) ||
-                                (s.getName() != null && s.getName().toLowerCase().contains(keyword)) ||
-                                (s.getEmail() != null && s.getEmail().toLowerCase().contains(keyword)) ||
-                                (s.getPhone() != null && s.getPhone().toLowerCase().contains(keyword)) ||
-                                (s.getContactPerson() != null && s.getContactPerson().toLowerCase().contains(keyword)))
-                    .collect(Collectors.toList());
-        }
-
-        // Filter by status
-        if (request.getStatus() != null) {
-            allSuppliers = allSuppliers.stream()
-                    .filter(s -> s.getStatus() != null && s.getStatus().code().equals(request.getStatus()))
-                    .collect(Collectors.toList());
-        }
-
-        // Pagination
-        int page = request.getPage() != null && request.getPage() > 0 ? request.getPage() - 1 : 0;
-        int size = request.getSize() != null && request.getSize() > 0 ? request.getSize() : 10;
-        int total = allSuppliers.size();
-        int start = page * size;
-        int end = Math.min(start + size, total);
-
-        List<Supplier> pagedSuppliers = start < total ? allSuppliers.subList(start, end) : new ArrayList<>();
-
+        // Build Pageable with sorting
+        String sortBy = request.getSortBy() != null ? request.getSortBy() : "name";
+        org.springframework.data.domain.Sort.Direction direction = 
+            "ASC".equalsIgnoreCase(request.getSafeSortDirection()) 
+                ? org.springframework.data.domain.Sort.Direction.ASC 
+                : org.springframework.data.domain.Sort.Direction.DESC;
+        
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            request.getPageZeroBased(),
+            request.getSafeSize(),
+            org.springframework.data.domain.Sort.by(direction, sortBy)
+        );
+        
+        // Query with pagination
+        org.springframework.data.domain.Page<Supplier> page = supplierRepository.findAll(
+            request.getKeyword(),
+            request.getStatus(),
+            pageable
+        );
+        
+        // Map to DTOs
+        List<SupplierDTO> dtos = page.getContent().stream()
+            .map(SupplierMapper::toDTO)
+            .collect(Collectors.toList());
+        
         SupplierListResponse response = new SupplierListResponse();
-        response.setItems(pagedSuppliers.stream().map(SupplierMapper::toDTO).collect(Collectors.toList()));
-        response.setPage(request.getPage() != null && request.getPage() > 0 ? request.getPage() : 1);
-        response.setSize(size);
-        response.setTotal((long) total);
+        response.setItems(dtos);
+        response.setTotal(page.getTotalElements());
+        response.setPage(request.getPage());
+        response.setSize(request.getSafeSize());
+        response.setTotalPages(page.getTotalPages());
 
         return response;
     }

@@ -1,13 +1,10 @@
 package com.restaurant.ddd.application.model.branch;
 
+import com.restaurant.ddd.application.model.common.PageResponse;
 import lombok.Data;
-
-import java.util.List;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class BranchListResponse {
-    private List<BranchDTO> items;
-    private Integer page;
-    private Integer size;
-    private Long total;
+@EqualsAndHashCode(callSuper = true)
+public class BranchListResponse extends PageResponse<BranchDTO> {
 }

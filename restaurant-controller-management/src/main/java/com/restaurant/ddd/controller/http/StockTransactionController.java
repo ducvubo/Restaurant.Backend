@@ -110,6 +110,8 @@ public class StockTransactionController {
     public ResponseEntity<ResultMessage<StockTransactionListResponse>> list(
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", required = false) Integer size,
+            @RequestParam(name = "sortBy", required = false) String sortBy,
+            @RequestParam(name = "sortDirection", required = false) String sortDirection,
             @RequestParam(name = "warehouseId", required = false) UUID warehouseId,
             @RequestParam(name = "materialId", required = false) UUID materialId,
             @RequestParam(name = "transactionType", required = false) Integer transactionType,
@@ -117,8 +119,10 @@ public class StockTransactionController {
             @RequestParam(name = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
     ) {
         StockTransactionListRequest request = new StockTransactionListRequest();
-        request.setPage(page);
-        request.setSize(size);
+        if (page != null) request.setPage(page);
+        if (size != null) request.setSize(size);
+        request.setSortBy(sortBy);
+        request.setSortDirection(sortDirection);
         request.setWarehouseId(warehouseId);
         request.setMaterialId(materialId);
         request.setTransactionType(transactionType);

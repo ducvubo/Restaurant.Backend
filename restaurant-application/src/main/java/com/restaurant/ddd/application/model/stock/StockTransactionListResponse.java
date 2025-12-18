@@ -1,17 +1,14 @@
 package com.restaurant.ddd.application.model.stock;
 
+import com.restaurant.ddd.application.model.common.PageResponse;
 import lombok.Data;
-
-import java.util.List;
+import lombok.EqualsAndHashCode;
 
 /**
  * Response for listing stock transactions
  */
 @Data
-public class StockTransactionListResponse {
-    private List<StockTransactionDTO> items;
-    private long total;
-    private int page;
-    private int size;
-    private int totalPages;
+@EqualsAndHashCode(callSuper = true)
+public class StockTransactionListResponse extends PageResponse<StockTransactionDTO> {
+    // Can add specific fields if needed
 }

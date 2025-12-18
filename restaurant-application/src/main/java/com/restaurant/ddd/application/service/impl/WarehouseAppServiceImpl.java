@@ -105,37 +105,39 @@ public class WarehouseAppServiceImpl implements WarehouseAppService {
 
     @Override
     public ResultMessage<WarehouseListResponse> getList(WarehouseListRequest request) {
-        // Simple implementation without complex filtering logic for now
-        // Normally would pass request to repository for pagination/filtering
-        List<Warehouse> all = warehouseRepository.findAll();
+        // Build Pageable with sorting
+        String sortBy = request.getSortBy() != null ? request.getSortBy() : "name";
+        org.springframework.data.domain.Sort.Direction direction = 
+            "ASC".equalsIgnoreCase(request.getSafeSortDirection()) 
+                ? org.springframework.data.domain.Sort.Direction.ASC 
+                : org.springframework.data.domain.Sort.Direction.DESC;
         
-        // Basic filtering
-        List<WarehouseDTO> dtos = all.stream()
-            .filter(w -> request.getKeyword() == null || w.getName().toLowerCase().contains(request.getKeyword().toLowerCase()) || w.getCode().toLowerCase().contains(request.getKeyword().toLowerCase()))
-            .filter(w -> request.getStatus() == null || (w.getStatus() != null && w.getStatus().code().equals(request.getStatus())))
-            .filter(w -> request.getBranchId() == null || (w.getBranchId() != null && w.getBranchId().equals(request.getBranchId())))
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            request.getPageZeroBased(),
+            request.getSafeSize(),
+            org.springframework.data.domain.Sort.by(direction, sortBy)
+        );
+        
+        // Query with pagination
+        org.springframework.data.domain.Page<Warehouse> page = warehouseRepository.findAll(
+            request.getKeyword(),
+            request.getStatus(),
+            request.getBranchId(),
+            request.getWarehouseType(),
+            pageable
+        );
+        
+        // Map to DTOs
+        List<WarehouseDTO> dtos = page.getContent().stream()
             .map(WarehouseMapper::toDTO)
             .collect(Collectors.toList());
-
-        // Simple Pagination
-        int page = request.getPage() != null ? request.getPage() : 1;
-        int size = request.getSize() != null ? request.getSize() : 10;
-        int fromIndex = (page - 1) * size;
-        int toIndex = Math.min(fromIndex + size, dtos.size());
         
-        List<WarehouseDTO> pagedDtos;
-        if (fromIndex >= dtos.size()) {
-            pagedDtos = List.of();
-        } else {
-            pagedDtos = dtos.subList(fromIndex, toIndex);
-        }
-
         WarehouseListResponse response = new WarehouseListResponse();
-        response.setItems(pagedDtos);
-        response.setTotal(dtos.size());
-        response.setPage(page);
-        response.setSize(size);
-        response.setTotalPages((int) Math.ceil((double) dtos.size() / size));
+        response.setItems(dtos);
+        response.setTotal(page.getTotalElements());
+        response.setPage(request.getPage());
+        response.setSize(request.getSafeSize());
+        response.setTotalPages(page.getTotalPages());
 
         return new ResultMessage<>(ResultCode.SUCCESS, "Lấy danh sách kho thành công", response);
     }

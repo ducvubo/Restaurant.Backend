@@ -6,10 +6,14 @@ import com.restaurant.ddd.domain.respository.InventoryLedgerRepository;
 import com.restaurant.ddd.infrastructure.persistence.entity.InventoryLedgerJpaEntity;
 import com.restaurant.ddd.infrastructure.persistence.mapper.InventoryLedgerDataAccessMapper;
 import com.restaurant.ddd.infrastructure.persistence.repository.InventoryLedgerJpaRepository;
+import com.restaurant.ddd.infrastructure.persistence.specification.InventoryLedgerSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -68,5 +72,21 @@ public class InventoryLedgerRepositoryImpl implements InventoryLedgerRepository 
     @Override
     public void delete(InventoryLedger ledger) {
         inventoryLedgerJpaRepository.deleteById(ledger.getId());
+    }
+    
+    @Override
+    public Page<InventoryLedger> findAll(
+            UUID warehouseId,
+            UUID materialId,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Pageable pageable) {
+        
+        return inventoryLedgerJpaRepository.findAll(
+                InventoryLedgerSpecification.buildSpec(
+                        warehouseId, materialId, startDate, endDate
+                ),
+                pageable
+        ).map(inventoryLedgerDataAccessMapper::inventoryLedgerJpaEntityToInventoryLedger);
     }
 }

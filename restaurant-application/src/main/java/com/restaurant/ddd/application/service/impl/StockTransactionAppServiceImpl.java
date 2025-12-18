@@ -450,33 +450,70 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
 
     @Override
     public ResultMessage<StockTransactionListResponse> getList(StockTransactionListRequest request) {
-        List<StockTransactionDTO> transactions = new ArrayList<>();
+        // Build Pageable with sorting
+        String sortBy = request.getSortBy() != null ? request.getSortBy() : "transactionDate";
+        org.springframework.data.domain.Sort.Direction direction = 
+            "ASC".equalsIgnoreCase(request.getSafeSortDirection()) 
+                ? org.springframework.data.domain.Sort.Direction.ASC 
+                : org.springframework.data.domain.Sort.Direction.DESC;
         
-        // Filter by transaction type
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            request.getPageZeroBased(),
+            request.getSafeSize(),
+            org.springframework.data.domain.Sort.by(direction, sortBy)
+        );
+        
+        List<StockTransactionDTO> transactions = new ArrayList<>();
+        long totalElements = 0;
+        
         Integer transactionType = request.getTransactionType();
         
+        // Get Stock In transactions if requested
         if (transactionType == null || transactionType == 1) {
-            // Get Stock In transactions
-            List<StockInTransaction> stockInList = stockInTransactionRepository.findAll();
-            transactions.addAll(stockInList.stream()
-                    .map(this::toStockInDTO)
-                    .collect(Collectors.toList()));
+            org.springframework.data.domain.Page<StockInTransaction> stockInPage = 
+                stockInTransactionRepository.findAll(
+                    request.getWarehouseId(),
+                    request.getMaterialId(),
+                    request.getStartDate(),
+                    request.getEndDate(),
+                    pageable
+                );
+            
+            transactions.addAll(stockInPage.getContent().stream()
+                .map(this::toStockInDTO)
+                .collect(Collectors.toList()));
+            totalElements += stockInPage.getTotalElements();
         }
         
+        // Get Stock Out transactions if requested
         if (transactionType == null || transactionType == 2) {
-            // Get Stock Out transactions
-            List<StockOutTransaction> stockOutList = stockOutTransactionRepository.findAll();
-            transactions.addAll(stockOutList.stream()
-                    .map(this::toStockOutDTO)
-                    .collect(Collectors.toList()));
+            org.springframework.data.domain.Page<StockOutTransaction> stockOutPage = 
+                stockOutTransactionRepository.findAll(
+                    request.getWarehouseId(),
+                    request.getMaterialId(),
+                    request.getStartDate(),
+                    request.getEndDate(),
+                    pageable
+                );
+            
+            transactions.addAll(stockOutPage.getContent().stream()
+                .map(this::toStockOutDTO)
+                .collect(Collectors.toList()));
+            totalElements += stockOutPage.getTotalElements();
         }
         
-        // Sort by transaction date descending
-        transactions.sort((a, b) -> b.getTransactionDate().compareTo(a.getTransactionDate()));
+        // If both types requested, we need to merge and re-sort
+        if (transactionType == null) {
+            // Sort by transaction date descending (most recent first)
+            transactions.sort((a, b) -> b.getTransactionDate().compareTo(a.getTransactionDate()));
+        }
         
         StockTransactionListResponse response = new StockTransactionListResponse();
         response.setItems(transactions);
-        response.setTotal(transactions.size());
+        response.setTotal(totalElements);
+        response.setPage(request.getPage());
+        response.setSize(request.getSafeSize());
+        response.setTotalPages((int) Math.ceil((double) totalElements / request.getSafeSize()));
         
         return new ResultMessage<>(ResultCode.SUCCESS, "Lấy danh sách giao dịch thành công", response);
     }

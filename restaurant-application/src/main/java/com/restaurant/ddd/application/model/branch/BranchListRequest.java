@@ -1,11 +1,12 @@
 package com.restaurant.ddd.application.model.branch;
 
+import com.restaurant.ddd.application.model.common.PageRequest;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class BranchListRequest {
+@EqualsAndHashCode(callSuper = true)
+public class BranchListRequest extends PageRequest {
     private String keyword;
     private Integer status;
-    private Integer page = 1;
-    private Integer size = 10;
 }

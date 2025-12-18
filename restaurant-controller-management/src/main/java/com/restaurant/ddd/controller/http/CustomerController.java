@@ -57,8 +57,24 @@ public class CustomerController {
 
     @GetMapping("/list")
     @Operation(summary = "List all customers")
-    public ResponseEntity<ResultMessage<CustomerListResponse>> list() {
-        var result = customerAppService.getList();
+    public ResponseEntity<ResultMessage<CustomerListResponse>> list(
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", required = false) Integer size,
+            @RequestParam(name = "sortBy", required = false) String sortBy,
+            @RequestParam(name = "sortDirection", required = false) String sortDirection,
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "status", required = false) Integer status
+    ) {
+        com.restaurant.ddd.application.model.customer.CustomerListRequest request = 
+            new com.restaurant.ddd.application.model.customer.CustomerListRequest();
+        if (page != null) request.setPage(page);
+        if (size != null) request.setSize(size);
+        request.setSortBy(sortBy);
+        request.setSortDirection(sortDirection);
+        request.setKeyword(keyword);
+        request.setStatus(status);
+        
+        var result = customerAppService.getList(request);
         if (result.getCode() == ResultCode.SUCCESS) {
             return ResponseEntity.ok(ResultUtil.data(result.getData(), result.getMessage()));
         }

@@ -6,8 +6,11 @@ import com.restaurant.ddd.domain.respository.UnitRepository;
 import com.restaurant.ddd.infrastructure.persistence.entity.UnitJpaEntity;
 import com.restaurant.ddd.infrastructure.persistence.mapper.UnitDataAccessMapper;
 import com.restaurant.ddd.infrastructure.persistence.mapper.UnitJpaRepository;
+import com.restaurant.ddd.infrastructure.persistence.specification.UnitSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -56,6 +59,14 @@ public class UnitRepositoryImpl implements UnitRepository {
         return unitJpaRepository.findAll().stream()
                 .map(unitDataAccessMapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<Unit> findAll(String keyword, Integer status, Pageable pageable) {
+        return unitJpaRepository.findAll(
+                UnitSpecification.buildSpec(keyword, status),
+                pageable
+        ).map(unitDataAccessMapper::toDomain);
     }
 
     @Override

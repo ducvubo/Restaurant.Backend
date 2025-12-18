@@ -121,34 +121,38 @@ public class MaterialAppServiceImpl implements MaterialAppService {
 
     @Override
     public ResultMessage<MaterialListResponse> getList(MaterialListRequest request) {
-        List<Material> all = materialRepository.findAll();
+        // Build Pageable with sorting
+        String sortBy = request.getSortBy() != null ? request.getSortBy() : "name";
+        org.springframework.data.domain.Sort.Direction direction = 
+            "ASC".equalsIgnoreCase(request.getSafeSortDirection()) 
+                ? org.springframework.data.domain.Sort.Direction.ASC 
+                : org.springframework.data.domain.Sort.Direction.DESC;
         
-        List<MaterialDTO> dtos = all.stream()
-            .filter(m -> request.getKeyword() == null || m.getName().toLowerCase().contains(request.getKeyword().toLowerCase()) || m.getCode().toLowerCase().contains(request.getKeyword().toLowerCase()))
-            .filter(m -> request.getStatus() == null || (m.getStatus() != null && m.getStatus().code().equals(request.getStatus())))
-            .filter(m -> request.getCategory() == null || (m.getCategory() != null && m.getCategory().equals(request.getCategory())))
-            // TODO: Filter by categoryId if needed in request
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            request.getPageZeroBased(),
+            request.getSafeSize(),
+            org.springframework.data.domain.Sort.by(direction, sortBy)
+        );
+        
+        // Query with pagination
+        org.springframework.data.domain.Page<Material> page = materialRepository.findAll(
+            request.getKeyword(),
+            request.getStatus(),
+            request.getCategory(),
+            pageable
+        );
+        
+        // Map to DTOs
+        List<MaterialDTO> dtos = page.getContent().stream()
             .map(this::toDTO)
             .collect(Collectors.toList());
-
-        int page = request.getPage() != null ? request.getPage() : 1;
-        int size = request.getSize() != null ? request.getSize() : 10;
-        int fromIndex = (page - 1) * size;
-        int toIndex = Math.min(fromIndex + size, dtos.size());
         
-        List<MaterialDTO> pagedDtos;
-        if (fromIndex >= dtos.size()) {
-            pagedDtos = List.of();
-        } else {
-            pagedDtos = dtos.subList(fromIndex, toIndex);
-        }
-
         MaterialListResponse response = new MaterialListResponse();
-        response.setItems(pagedDtos);
-        response.setTotal(dtos.size());
-        response.setPage(page);
-        response.setSize(size);
-        response.setTotalPages((int) Math.ceil((double) dtos.size() / size));
+        response.setItems(dtos);
+        response.setTotal(page.getTotalElements());
+        response.setPage(request.getPage());
+        response.setSize(request.getSafeSize());
+        response.setTotalPages(page.getTotalPages());
 
         return new ResultMessage<>(ResultCode.SUCCESS, "Lấy danh sách nguyên vật liệu thành công", response);
     }

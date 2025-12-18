@@ -30,14 +30,18 @@ public class InventoryLedgerController {
     public ResponseEntity<ResultMessage<InventoryLedgerListResponse>> list(
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", required = false) Integer size,
+            @RequestParam(name = "sortBy", required = false) String sortBy,
+            @RequestParam(name = "sortDirection", required = false) String sortDirection,
             @RequestParam(name = "warehouseId", required = true) UUID warehouseId,
             @RequestParam(name = "materialId", required = true) UUID materialId,
             @RequestParam(name = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(name = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
     ) {
         InventoryLedgerListRequest request = new InventoryLedgerListRequest();
-        request.setPage(page);
-        request.setSize(size);
+        if (page != null) request.setPage(page);
+        if (size != null) request.setSize(size);
+        request.setSortBy(sortBy);
+        request.setSortDirection(sortDirection);
         request.setWarehouseId(warehouseId);
         request.setMaterialId(materialId);
         request.setStartDate(startDate);

@@ -1,17 +1,14 @@
 package com.restaurant.ddd.application.model.warehouse;
 
+import com.restaurant.ddd.application.model.common.PageResponse;
 import lombok.Data;
-
-import java.util.List;
+import lombok.EqualsAndHashCode;
 
 /**
  * Response for listing warehouses
  */
 @Data
-public class WarehouseListResponse {
-    private List<WarehouseDTO> items;
-    private long total;
-    private int page;
-    private int size;
-    private int totalPages;
+@EqualsAndHashCode(callSuper = true)
+public class WarehouseListResponse extends PageResponse<WarehouseDTO> {
+    // Can add specific fields if needed
 }

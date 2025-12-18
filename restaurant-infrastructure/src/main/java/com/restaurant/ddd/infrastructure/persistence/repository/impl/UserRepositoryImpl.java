@@ -5,8 +5,11 @@ import com.restaurant.ddd.domain.respository.UserRepository;
 import com.restaurant.ddd.infrastructure.persistence.entity.UserManagementJpaEntity;
 import com.restaurant.ddd.infrastructure.persistence.mapper.UserInfraMapper;
 import com.restaurant.ddd.infrastructure.persistence.mapper.UserJpaMapper;
+import com.restaurant.ddd.infrastructure.persistence.specification.UserSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,7 +44,7 @@ public class UserRepositoryImpl implements UserRepository {
         return userJpaMapper.findByUsername(username).map(UserInfraMapper::toDomain);
     }
 
-    @Override
+    @ Override
     public Optional<User> findByEmail(String email) {
         return userJpaMapper.findByEmail(email).map(UserInfraMapper::toDomain);
     }
@@ -49,6 +52,14 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public List<User> findAll() {
         return userJpaMapper.findAll().stream().map(UserInfraMapper::toDomain).toList();
+    }
+
+    @Override
+    public Page<User> findAll(String keyword, Integer status, Pageable pageable) {
+        return userJpaMapper.findAll(
+                UserSpecification.buildSpec(keyword, status),
+                pageable
+        ).map(UserInfraMapper::toDomain);
     }
 
     @Override

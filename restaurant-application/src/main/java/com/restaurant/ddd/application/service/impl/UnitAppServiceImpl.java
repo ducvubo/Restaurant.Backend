@@ -87,39 +87,35 @@ public class UnitAppServiceImpl implements UnitAppService {
         log.info("Unit Application Service: getList - keyword: {}, status: {}, page: {}, size: {}",
                 request.getKeyword(), request.getStatus(), request.getPage(), request.getSize());
 
-        List<Unit> allUnits = unitRepository.findAll();
+        // Build Pageable with sorting
+        String sortField = request.getSortBy() != null ? request.getSortBy() : "createdDate";
+        String sortDirection = request.getSortDirection() != null ? request.getSortDirection() : "desc";
+        
+        org.springframework.data.domain.Sort.Direction direction = 
+            "asc".equalsIgnoreCase(sortDirection) 
+                ? org.springframework.data.domain.Sort.Direction.ASC 
+                : org.springframework.data.domain.Sort.Direction.DESC;
+        
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            request.getPage() - 1,
+            request.getSize(),
+            org.springframework.data.domain.Sort.by(direction, sortField)
+        );
+        
+        // Call repository with filters
+        org.springframework.data.domain.Page<Unit> page = unitRepository.findAll(
+            request.getKeyword(),
+            request.getStatus(),
+            pageable
+        );
 
-        // Filter by keyword
-        if (request.getKeyword() != null && !request.getKeyword().trim().isEmpty()) {
-            String keyword = request.getKeyword().toLowerCase();
-            allUnits = allUnits.stream()
-                    .filter(u -> (u.getCode() != null && u.getCode().toLowerCase().contains(keyword)) ||
-                                (u.getName() != null && u.getName().toLowerCase().contains(keyword)) ||
-                                (u.getSymbol() != null && u.getSymbol().toLowerCase().contains(keyword)))
-                    .collect(Collectors.toList());
-        }
-
-        // Filter by status
-        if (request.getStatus() != null) {
-            allUnits = allUnits.stream()
-                    .filter(u -> u.getStatus() != null && u.getStatus().code().equals(request.getStatus()))
-                    .collect(Collectors.toList());
-        }
-
-        // Pagination
-        int page = request.getPage() != null && request.getPage() > 0 ? request.getPage() - 1 : 0;
-        int size = request.getSize() != null && request.getSize() > 0 ? request.getSize() : 10;
-        int total = allUnits.size();
-        int start = page * size;
-        int end = Math.min(start + size, total);
-
-        List<Unit> pagedUnits = start < total ? allUnits.subList(start, end) : new ArrayList<>();
-
+        // Map to DTOs
         UnitListResponse response = new UnitListResponse();
-        response.setItems(pagedUnits.stream().map(UnitMapper::toDTO).collect(Collectors.toList()));
-        response.setPage(request.getPage() != null && request.getPage() > 0 ? request.getPage() : 1);
-        response.setSize(size);
-        response.setTotal((long) total);
+        response.setItems(page.getContent().stream().map(UnitMapper::toDTO).collect(Collectors.toList()));
+        response.setPage(request.getPage());
+        response.setSize(request.getSize());
+        response.setTotal(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
 
         return response;
     }

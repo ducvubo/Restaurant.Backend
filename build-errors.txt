@@ -1,0 +1,107 @@
+﻿[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for com.restaurant:restaurant-start-management:jar:1.0-SNAPSHOT
+[WARNING] 'build.plugins.plugin.version' for org.springframework.boot:spring-boot-maven-plugin is missing. @ line 105, column 21
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for com.restaurant:restaurant-start-portal:jar:1.0-SNAPSHOT
+[WARNING] 'build.plugins.plugin.version' for org.springframework.boot:spring-boot-maven-plugin is missing. @ line 77, column 21
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] 
+[INFO] ------------------< com.restaurant:restaurant-domain >------------------
+[INFO] Building restaurant-domain 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ restaurant-domain ---
+[INFO] skip non existing resourceDirectory E:\VuDucBo\Restaurant\Restaurant.Backend\restaurant-domain\src\main\resources
+[INFO] 
+[INFO] --- compiler:3.8.1:compile (default-compile) @ restaurant-domain ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 64 source files to E:\VuDucBo\Restaurant\Restaurant.Backend\restaurant-domain\target\classes
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockOutTransactionRepository.java:[4,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockOutTransactionRepository.java:[5,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockOutTransactionRepository.java:[25,9] cannot find symbol
+  symbol:   class Pageable
+  location: interface com.restaurant.ddd.domain.respository.StockOutTransactionRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockOutTransactionRepository.java:[20,5] cannot find symbol
+  symbol:   class Page
+  location: interface com.restaurant.ddd.domain.respository.StockOutTransactionRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/MaterialRepository.java:[5,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/MaterialRepository.java:[6,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/MaterialRepository.java:[27,9] cannot find symbol
+  symbol:   class Pageable
+  location: interface com.restaurant.ddd.domain.respository.MaterialRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/MaterialRepository.java:[23,5] cannot find symbol
+  symbol:   class Page
+  location: interface com.restaurant.ddd.domain.respository.MaterialRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockInTransactionRepository.java:[4,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockInTransactionRepository.java:[5,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockInTransactionRepository.java:[25,9] cannot find symbol
+  symbol:   class Pageable
+  location: interface com.restaurant.ddd.domain.respository.StockInTransactionRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockInTransactionRepository.java:[20,5] cannot find symbol
+  symbol:   class Page
+  location: interface com.restaurant.ddd.domain.respository.StockInTransactionRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/InventoryLedgerRepository.java:[5,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/InventoryLedgerRepository.java:[6,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/InventoryLedgerRepository.java:[32,9] cannot find symbol
+  symbol:   class Pageable
+  location: interface com.restaurant.ddd.domain.respository.InventoryLedgerRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/InventoryLedgerRepository.java:[27,5] cannot find symbol
+  symbol:   class Page
+  location: interface com.restaurant.ddd.domain.respository.InventoryLedgerRepository
+[INFO] 16 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.224 s
+[INFO] Finished at: 2025-12-17T23:21:50+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.8.1:compile (default-compile) on project restaurant-domain: Compilation failure: Compilation failure: 
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockOutTransactionRepository.java:[4,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockOutTransactionRepository.java:[5,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockOutTransactionRepository.java:[25,9] cannot find symbol
+[ERROR]   symbol:   class Pageable
+[ERROR]   location: interface com.restaurant.ddd.domain.respository.StockOutTransactionRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockOutTransactionRepository.java:[20,5] cannot find symbol
+[ERROR]   symbol:   class Page
+[ERROR]   location: interface com.restaurant.ddd.domain.respository.StockOutTransactionRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/MaterialRepository.java:[5,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/MaterialRepository.java:[6,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/MaterialRepository.java:[27,9] cannot find symbol
+[ERROR]   symbol:   class Pageable
+[ERROR]   location: interface com.restaurant.ddd.domain.respository.MaterialRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/MaterialRepository.java:[23,5] cannot find symbol
+[ERROR]   symbol:   class Page
+[ERROR]   location: interface com.restaurant.ddd.domain.respository.MaterialRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockInTransactionRepository.java:[4,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockInTransactionRepository.java:[5,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockInTransactionRepository.java:[25,9] cannot find symbol
+[ERROR]   symbol:   class Pageable
+[ERROR]   location: interface com.restaurant.ddd.domain.respository.StockInTransactionRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/StockInTransactionRepository.java:[20,5] cannot find symbol
+[ERROR]   symbol:   class Page
+[ERROR]   location: interface com.restaurant.ddd.domain.respository.StockInTransactionRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/InventoryLedgerRepository.java:[5,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/InventoryLedgerRepository.java:[6,39] package org.springframework.data.domain does not exist
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/InventoryLedgerRepository.java:[32,9] cannot find symbol
+[ERROR]   symbol:   class Pageable
+[ERROR]   location: interface com.restaurant.ddd.domain.respository.InventoryLedgerRepository
+[ERROR] /E:/VuDucBo/Restaurant/Restaurant.Backend/restaurant-domain/src/main/java/com/restaurant/ddd/domain/respository/InventoryLedgerRepository.java:[27,5] cannot find symbol
+[ERROR]   symbol:   class Page
+[ERROR]   location: interface com.restaurant.ddd.domain.respository.InventoryLedgerRepository
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

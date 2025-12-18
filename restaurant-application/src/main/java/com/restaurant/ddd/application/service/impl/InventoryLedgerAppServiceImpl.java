@@ -30,42 +30,44 @@ public class InventoryLedgerAppServiceImpl implements InventoryLedgerAppService 
 
     @Override
     public ResultMessage<InventoryLedgerListResponse> getList(InventoryLedgerListRequest request) {
-        // Fetch logic matching repo methods
-        List<InventoryLedger> all;
-        if (request.getWarehouseId() != null && request.getMaterialId() != null) {
-            all = inventoryLedgerRepository.findByWarehouseAndMaterial(request.getWarehouseId(), request.getMaterialId());
-        } else {
-             // Fallback or error? For now empty or simple scan if repo supports it
-             // Current impl of repo methods is limited. Assuming wrapper handles this or we add more finders.
-             // For strict filtering, we need dynamic queries. 
-             // Returning empty if not specific enough to prevent huge load
-             return new ResultMessage<>(ResultCode.ERROR, "Vui lòng chọn kho và nguyên vật liệu để xem sổ cái", null);
+        // Validate required parameters
+        if (request.getWarehouseId() == null || request.getMaterialId() == null) {
+            return new ResultMessage<>(ResultCode.ERROR, "Vui lòng chọn kho và nguyên vật liệu để xem sổ cái", null);
         }
-
-        List<InventoryLedgerDTO> dtos = all.stream()
-            .sorted(Comparator.comparing(InventoryLedger::getTransactionDate).reversed())
+        
+        // Build Pageable with sorting
+        String sortBy = request.getSortBy() != null ? request.getSortBy() : "transactionDate";
+        org.springframework.data.domain.Sort.Direction direction = 
+            "ASC".equalsIgnoreCase(request.getSafeSortDirection()) 
+                ? org.springframework.data.domain.Sort.Direction.ASC 
+                : org.springframework.data.domain.Sort.Direction.DESC;
+        
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            request.getPageZeroBased(),
+            request.getSafeSize(),
+            org.springframework.data.domain.Sort.by(direction, sortBy)
+        );
+        
+        // Query with pagination
+        org.springframework.data.domain.Page<InventoryLedger> page = inventoryLedgerRepository.findAll(
+            request.getWarehouseId(),
+            request.getMaterialId(),
+            request.getStartDate(),
+            request.getEndDate(),
+            pageable
+        );
+        
+        // Map to DTOs
+        List<InventoryLedgerDTO> dtos = page.getContent().stream()
             .map(this::toDTO)
             .collect(Collectors.toList());
-
-        // Pagination
-        int page = request.getPage() != null ? request.getPage() : 1;
-        int size = request.getSize() != null ? request.getSize() : 10;
-        int fromIndex = (page - 1) * size;
-        int toIndex = Math.min(fromIndex + size, dtos.size());
         
-        List<InventoryLedgerDTO> pagedDtos;
-        if (fromIndex >= dtos.size()) {
-            pagedDtos = List.of();
-        } else {
-            pagedDtos = dtos.subList(fromIndex, toIndex);
-        }
-
         InventoryLedgerListResponse response = new InventoryLedgerListResponse();
-        response.setItems(pagedDtos);
-        response.setTotal(dtos.size());
-        response.setPage(page);
-        response.setSize(size);
-        response.setTotalPages((int) Math.ceil((double) dtos.size() / size));
+        response.setItems(dtos);
+        response.setTotal(page.getTotalElements());
+        response.setPage(request.getPage());
+        response.setSize(request.getSafeSize());
+        response.setTotalPages(page.getTotalPages());
 
         return new ResultMessage<>(ResultCode.SUCCESS, "Lấy sổ cái thành công", response);
     }

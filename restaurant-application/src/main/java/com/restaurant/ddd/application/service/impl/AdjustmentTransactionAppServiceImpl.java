@@ -151,37 +151,44 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
     }
 
     @Override
-    public ResultMessage<AdjustmentListResponse> listAdjustments(int page, int size) {
-        List<AdjustmentTransaction> allTransactions = adjustmentTransactionRepository.findAll();
-        allTransactions.sort(
-                Comparator.comparing(
-                        AdjustmentTransaction::getCreatedDate,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                ).reversed()
+    public ResultMessage<AdjustmentListResponse> listAdjustments(AdjustmentListRequest request) {
+        // Build Pageable with sorting
+        String sortField = request.getSortBy() != null ? request.getSortBy() : "createdDate";
+        String sortDirection = request.getSortDirection() != null ? request.getSortDirection() : "desc";
+        
+        org.springframework.data.domain.Sort.Direction direction = 
+            "asc".equalsIgnoreCase(sortDirection) 
+                ? org.springframework.data.domain.Sort.Direction.ASC 
+                : org.springframework.data.domain.Sort.Direction.DESC;
+        
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            request.getPage() - 1,
+            request.getSize(),
+            org.springframework.data.domain.Sort.by(direction, sortField)
         );
-
-        // Calculate pagination
-        int total = allTransactions.size();
-        int fromIndex = (page - 1) * size;
-        int toIndex = Math.min(fromIndex + size, total);
         
-        // Get page data
-        List<AdjustmentTransaction> pageTransactions;
-        if (fromIndex >= total) {
-            pageTransactions = new ArrayList<>();
-        } else {
-            pageTransactions = allTransactions.subList(fromIndex, toIndex);
-        }
+        // Call repository with filters
+        org.springframework.data.domain.Page<AdjustmentTransaction> page = adjustmentTransactionRepository.findAll(
+            request.getWarehouseId(),
+            request.getMaterialId(),
+            request.getFromDate(),
+            request.getToDate(),
+            request.getStatus(),
+            pageable
+        );
         
-        List<AdjustmentTransactionDTO> dtos = pageTransactions.stream()
+        // Map to DTOs
+        List<AdjustmentTransactionDTO> dtos = page.getContent().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
         
+        // Build response
         AdjustmentListResponse response = new AdjustmentListResponse();
         response.setItems(dtos);
-        response.setTotal(total);
-        response.setPage(page);
-        response.setSize(size);
+        response.setPage(request.getPage());
+        response.setSize(request.getSize());
+        response.setTotal(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
         
         return new ResultMessage<>(ResultCode.SUCCESS, "Lấy danh sách thành công", response);
     }

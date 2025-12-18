@@ -1,11 +1,11 @@
 package com.restaurant.ddd.application.model.customer;
 
+import com.restaurant.ddd.application.model.common.PageResponse;
 import lombok.Data;
-
-import java.util.List;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class CustomerListResponse {
-    private List<CustomerDTO> items;
-    private Integer total;
+@EqualsAndHashCode(callSuper = true)
+public class CustomerListResponse extends PageResponse<CustomerDTO> {
+    // Can add specific fields if needed
 }

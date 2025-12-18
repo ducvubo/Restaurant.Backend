@@ -50,4 +50,16 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     public void delete(Customer customer) {
         customerJpaRepository.deleteById(customer.getId());
     }
+    
+    @Override
+    public org.springframework.data.domain.Page<Customer> findAll(
+            String keyword,
+            Integer status,
+            org.springframework.data.domain.Pageable pageable) {
+        
+        return customerJpaRepository.findAll(
+                com.restaurant.ddd.infrastructure.persistence.specification.CustomerSpecification.buildSpec(keyword, status),
+                pageable
+        ).map(customerDataAccessMapper::toDomain);
+    }
 }
