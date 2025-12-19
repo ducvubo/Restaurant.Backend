@@ -239,6 +239,11 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
                     .setNotes(itemRequest.getNotes());
             
             stockOutItemRepository.save(item);
+            
+            // Add to total amount if item has price
+            if (item.getTotalAmount() != null) {
+                totalAmount = totalAmount.add(item.getTotalAmount());
+            }
         }
         
         // DO NOT deduct inventory here
@@ -313,6 +318,11 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
                     .setNotes(itemRequest.getNotes());
             
             stockOutItemRepository.save(item);
+            
+            // Add to total amount if item has price
+            if (item.getTotalAmount() != null) {
+                totalAmount = totalAmount.add(item.getTotalAmount());
+            }
         }
         
         existing.setTotalAmount(totalAmount);
