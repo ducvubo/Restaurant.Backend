@@ -20,11 +20,12 @@ public class InventoryLedgerDTO {
     private String transactionCode;
     private LocalDateTime transactionDate;
     private String inventoryMethod;  // FIFO, LIFO
-    private BigDecimal quantity;
+    private BigDecimal quantity;  // Số lượng nhập ban đầu
+    private BigDecimal quantityOut;  // Số lượng đã xuất (calculated from quantity - remainingQuantity)
     private UUID unitId;
     private String unitName;
     private BigDecimal unitPrice;
-    private BigDecimal remainingQuantity;
+    private BigDecimal remainingQuantity;  // Số lượng còn lại
     private String batchNumber;
     private LocalDateTime createdDate;
 }

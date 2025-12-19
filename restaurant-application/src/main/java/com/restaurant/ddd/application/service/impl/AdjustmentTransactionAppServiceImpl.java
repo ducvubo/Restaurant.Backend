@@ -130,6 +130,25 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
             adjustmentItemRepository.deleteById(item.getId());
         }
 
+        // Validate stock for DECREASE adjustments
+        if (transaction.getAdjustmentType() == AdjustmentType.DECREASE) {
+            for (AdjustmentItemRequest itemReq : request.getItems()) {
+                BigDecimal currentStock = inventoryLedgerRepository.getCurrentStock(
+                    request.getWarehouseId(), 
+                    itemReq.getMaterialId()
+                );
+                
+                if (itemReq.getQuantity().compareTo(currentStock) > 0) {
+                    Material material = materialRepository.findById(itemReq.getMaterialId()).orElse(null);
+                    String materialName = material != null ? material.getName() : itemReq.getMaterialId().toString();
+                    return new ResultMessage<>(ResultCode.ERROR, 
+                        String.format("Số lượng giảm vượt quá tồn kho hiện tại cho '%s'. Tồn kho: %s, Yêu cầu giảm: %s", 
+                            materialName, currentStock, itemReq.getQuantity()), 
+                        null);
+                }
+            }
+        }
+
         // Create new items
         for (AdjustmentItemRequest itemReq : request.getItems()) {
             AdjustmentItem item = new AdjustmentItem();
@@ -238,13 +257,10 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
             return new ResultMessage<>(ResultCode.ERROR, "Vui lòng chọn Người Điều Chỉnh trước khi chốt phiếu", null);
         }
 
-        // Lock transaction
-        transaction.setIsLocked(true);
-        adjustmentTransactionRepository.save(transaction);
-
-        // Create inventory ledger entries
+        // Get items
         List<AdjustmentItem> items = adjustmentItemRepository.findByAdjustmentTransactionId(id);
         
+        // Process based on adjustment type
         if (transaction.getAdjustmentType() == AdjustmentType.INCREASE) {
             // Điều chỉnh TĂNG: Tạo ledger mới
             for (AdjustmentItem item : items) {
@@ -266,9 +282,23 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
                 inventoryLedgerRepository.save(ledger);
             }
         } else if (transaction.getAdjustmentType() == AdjustmentType.DECREASE) {
-            // Điều chỉnh GIẢM: Dùng FIFO
+            // Điều chỉnh GIẢM: Validate và dùng FIFO
             for (AdjustmentItem item : items) {
                 BigDecimal remainingQty = item.getQuantity();
+                BigDecimal totalAvailable = inventoryLedgerRepository.getCurrentStock(
+                    transaction.getWarehouseId(), 
+                    item.getMaterialId()
+                );
+                
+                // Validate stock BEFORE processing
+                if (item.getQuantity().compareTo(totalAvailable) > 0) {
+                    Material material = materialRepository.findById(item.getMaterialId()).orElse(null);
+                    String materialName = material != null ? material.getName() : item.getMaterialId().toString();
+                    return new ResultMessage<>(ResultCode.ERROR, 
+                        String.format("Không đủ tồn kho để chốt phiếu điều chỉnh giảm!\nNguyên liệu: '%s'\nTồn kho hiện tại: %s\nYêu cầu giảm: %s", 
+                            materialName, totalAvailable, item.getQuantity()), 
+                        null);
+                }
                 
                 // Get FIFO batches
                 List<InventoryLedger> batches = inventoryLedgerRepository
@@ -293,13 +323,12 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
                     
                     remainingQty = remainingQty.subtract(deductQty);
                 }
-                
-                if (remainingQty.compareTo(BigDecimal.ZERO) > 0) {
-                    return new ResultMessage<>(ResultCode.ERROR, 
-                        "Không đủ tồn kho cho nguyên liệu: " + item.getMaterialId(), null);
-                }
             }
         }
+
+        // Lock transaction AFTER all validations and processing succeed
+        transaction.setIsLocked(true);
+        adjustmentTransactionRepository.save(transaction);
 
         return new ResultMessage<>(ResultCode.SUCCESS, "Chốt phiếu điều chỉnh thành công", null);
     }
