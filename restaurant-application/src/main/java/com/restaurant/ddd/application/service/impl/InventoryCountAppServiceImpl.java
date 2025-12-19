@@ -10,6 +10,7 @@ import com.restaurant.ddd.domain.respository.*;
 import com.restaurant.ddd.infrastructure.persistence.entity.InventoryLedgerJpaEntity;
 import com.restaurant.ddd.infrastructure.persistence.repository.InventoryLedgerJpaRepository;
 import com.restaurant.ddd.infrastructure.persistence.specification.InventoryCountSpecification;
+import com.restaurant.ddd.infrastructure.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -40,6 +41,7 @@ public class InventoryCountAppServiceImpl implements InventoryCountAppService {
     private final MaterialRepository materialRepository;
     private final UnitRepository unitRepository;
     private final WarehouseRepository warehouseRepository;
+    private final UserRepository userRepository;
     
     @Override
     @Transactional
@@ -55,6 +57,8 @@ public class InventoryCountAppServiceImpl implements InventoryCountAppService {
         inventoryCount.setCountDate(request.getCountDate() != null ? request.getCountDate() : LocalDateTime.now());
         inventoryCount.setCountStatus(InventoryCountStatus.DRAFT);
         inventoryCount.setNotes(request.getNotes());
+        inventoryCount.setPerformedBy(request.getPerformedBy()); // From request
+        inventoryCount.setCreatedBy(SecurityUtils.getCurrentUserId()); // Auto-populate
         inventoryCount.setStatus(DataStatus.ACTIVE);
         inventoryCount.setCreatedDate(LocalDateTime.now());
         
@@ -106,7 +110,9 @@ public class InventoryCountAppServiceImpl implements InventoryCountAppService {
         
         inventoryCount.setWarehouseId(request.getWarehouseId());
         inventoryCount.setCountDate(request.getCountDate());
+        inventoryCount.setPerformedBy(request.getPerformedBy());
         inventoryCount.setNotes(request.getNotes());
+        inventoryCount.setUpdatedBy(SecurityUtils.getCurrentUserId());
         inventoryCount.setUpdatedDate(LocalDateTime.now());
         
         inventoryCountRepository.save(inventoryCount);
@@ -232,9 +238,21 @@ public class InventoryCountAppServiceImpl implements InventoryCountAppService {
         dto.setNotes(domain.getNotes());
         dto.setAdjustmentTransactionId(domain.getAdjustmentTransactionId());
         dto.setPerformedBy(domain.getPerformedBy());
+        dto.setCreatedBy(domain.getCreatedBy());
         dto.setStatus(domain.getStatus() != null ? domain.getStatus().code() : null);
         dto.setCreatedDate(domain.getCreatedDate());
         dto.setUpdatedDate(domain.getUpdatedDate());
+        
+        // Load user names
+        if (domain.getPerformedBy() != null) {
+            userRepository.findById(domain.getPerformedBy())
+                .ifPresent(user -> dto.setPerformedByName(user.getFullName()));
+        }
+        if (domain.getCreatedBy() != null) {
+            userRepository.findById(domain.getCreatedBy())
+                .ifPresent(user -> dto.setCreatedByName(user.getFullName()));
+        }
+        
         // No items loaded for list view
         return dto;
     }
@@ -274,6 +292,11 @@ public class InventoryCountAppServiceImpl implements InventoryCountAppService {
             throw new IllegalStateException("Phiếu kiểm kê đã hoàn thành");
         }
         
+        // Validate user fields before completing
+        if (inventoryCount.getPerformedBy() == null) {
+            throw new IllegalStateException("Vui lòng chọn Người Kiểm Kê trước khi hoàn thành phiếu");
+        }
+        
         // Load items
         List<InventoryCountItem> items = inventoryCountItemRepository.findByInventoryCountId(id);
         
@@ -305,6 +328,8 @@ public class InventoryCountAppServiceImpl implements InventoryCountAppService {
         adjustment.setTransactionDate(LocalDateTime.now());
         adjustment.setAdjustmentType(AdjustmentType.INVENTORY_COUNT); // Set adjustment type
         adjustment.setReason("Kiểm kê kho - " + inventoryCount.getCountCode());
+        adjustment.setPerformedBy(inventoryCount.getPerformedBy()); // Người kiểm kê
+        adjustment.setCreatedBy(SecurityUtils.getCurrentUserId()); // User hiện tại
         adjustment.setIsLocked(true); // Auto-lock to prevent editing and data inconsistency
         adjustment.setStatus(DataStatus.ACTIVE);
         adjustment.setCreatedDate(LocalDateTime.now());
@@ -369,9 +394,20 @@ public class InventoryCountAppServiceImpl implements InventoryCountAppService {
         dto.setNotes(domain.getNotes());
         dto.setAdjustmentTransactionId(domain.getAdjustmentTransactionId());
         dto.setPerformedBy(domain.getPerformedBy());
+        dto.setCreatedBy(domain.getCreatedBy());
         dto.setStatus(domain.getStatus() != null ? domain.getStatus().code() : null);
         dto.setCreatedDate(domain.getCreatedDate());
         dto.setUpdatedDate(domain.getUpdatedDate());
+        
+        // Load user names
+        if (domain.getPerformedBy() != null) {
+            userRepository.findById(domain.getPerformedBy())
+                .ifPresent(user -> dto.setPerformedByName(user.getFullName()));
+        }
+        if (domain.getCreatedBy() != null) {
+            userRepository.findById(domain.getCreatedBy())
+                .ifPresent(user -> dto.setCreatedByName(user.getFullName()));
+        }
         
         // Load items
         List<InventoryCountItem> items = inventoryCountItemRepository.findByInventoryCountId(domain.getId());

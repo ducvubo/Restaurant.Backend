@@ -9,6 +9,7 @@ import com.restaurant.ddd.domain.model.ResultMessage;
 import com.restaurant.ddd.domain.enums.*;
 import com.restaurant.ddd.domain.model.*;
 import com.restaurant.ddd.domain.respository.*;
+import com.restaurant.ddd.infrastructure.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
     private final WarehouseRepository warehouseRepository;
     private final MaterialRepository materialRepository;
     private final UnitRepository unitRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -57,6 +59,8 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
         transaction.setReason(request.getReason());
         transaction.setReferenceNumber(request.getReferenceNumber());
         transaction.setNotes(request.getNotes());
+        transaction.setPerformedBy(request.getPerformedBy()); // From request
+        transaction.setCreatedBy(SecurityUtils.getCurrentUserId()); // Auto-populate
         transaction.setIsLocked(false);
         transaction.setStatus(DataStatus.ACTIVE);
         transaction.setCreatedDate(LocalDateTime.now());
@@ -113,7 +117,9 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
         transaction.setTransactionDate(request.getTransactionDate() != null ? request.getTransactionDate() : transaction.getTransactionDate());
         transaction.setReason(request.getReason());
         transaction.setReferenceNumber(request.getReferenceNumber());
+        transaction.setPerformedBy(request.getPerformedBy());
         transaction.setNotes(request.getNotes());
+        transaction.setUpdatedBy(SecurityUtils.getCurrentUserId());
         transaction.setUpdatedDate(LocalDateTime.now());
 
         adjustmentTransactionRepository.save(transaction);
@@ -225,6 +231,11 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
         AdjustmentTransaction transaction = opt.get();
         if (transaction.getIsLocked()) {
             return new ResultMessage<>(ResultCode.ERROR, "Phiếu đã được chốt", null);
+        }
+
+        // Validate user fields before locking
+        if (transaction.getPerformedBy() == null) {
+            return new ResultMessage<>(ResultCode.ERROR, "Vui lòng chọn Người Điều Chỉnh trước khi chốt phiếu", null);
         }
 
         // Lock transaction
@@ -456,6 +467,8 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
         dto.setReferenceNumber(transaction.getReferenceNumber());
         dto.setNotes(transaction.getNotes());
         dto.setIsLocked(transaction.getIsLocked());
+        dto.setPerformedBy(transaction.getPerformedBy());
+        dto.setCreatedBy(transaction.getCreatedBy());
 
         // Get warehouse name
         warehouseRepository.findById(transaction.getWarehouseId())
@@ -463,6 +476,16 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
 
         // Get adjustment type name
         dto.setAdjustmentTypeName(transaction.getAdjustmentType().message());
+        
+        // Load user names
+        if (transaction.getPerformedBy() != null) {
+            userRepository.findById(transaction.getPerformedBy())
+                .ifPresent(user -> dto.setPerformedByName(user.getFullName()));
+        }
+        if (transaction.getCreatedBy() != null) {
+            userRepository.findById(transaction.getCreatedBy())
+                .ifPresent(user -> dto.setCreatedByName(user.getFullName()));
+        }
 
         // Get items
         List<AdjustmentItem> items = adjustmentItemRepository.findByAdjustmentTransactionId(transaction.getId());
@@ -486,6 +509,8 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
         dto.setReferenceNumber(transaction.getReferenceNumber());
         dto.setNotes(transaction.getNotes());
         dto.setIsLocked(transaction.getIsLocked());
+        dto.setPerformedBy(transaction.getPerformedBy());
+        dto.setCreatedBy(transaction.getCreatedBy());
 
         // Get warehouse name
         warehouseRepository.findById(transaction.getWarehouseId())
@@ -493,6 +518,16 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
 
         // Get adjustment type name
         dto.setAdjustmentTypeName(transaction.getAdjustmentType().message());
+        
+        // Load user names
+        if (transaction.getPerformedBy() != null) {
+            userRepository.findById(transaction.getPerformedBy())
+                .ifPresent(user -> dto.setPerformedByName(user.getFullName()));
+        }
+        if (transaction.getCreatedBy() != null) {
+            userRepository.findById(transaction.getCreatedBy())
+                .ifPresent(user -> dto.setCreatedByName(user.getFullName()));
+        }
         
         // No items loaded for list view
         return dto;

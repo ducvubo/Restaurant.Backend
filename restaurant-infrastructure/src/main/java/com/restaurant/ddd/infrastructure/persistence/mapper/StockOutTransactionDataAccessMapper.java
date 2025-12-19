@@ -20,6 +20,8 @@ public class StockOutTransactionDataAccessMapper {
         entity.setReferenceNumber(domain.getReferenceNumber());
         entity.setNotes(domain.getNotes());
         entity.setPerformedBy(domain.getPerformedBy());
+        entity.setIssuedBy(domain.getIssuedBy());
+        entity.setReceivedBy(domain.getReceivedBy());
         entity.setIsLocked(domain.getIsLocked());
         entity.setStatus(domain.getStatus());
         entity.setCreatedBy(domain.getCreatedBy());
@@ -49,6 +51,8 @@ public class StockOutTransactionDataAccessMapper {
                 .setReferenceNumber(entity.getReferenceNumber())
                 .setNotes(entity.getNotes())
                 .setPerformedBy(entity.getPerformedBy())
+                .setIssuedBy(entity.getIssuedBy())
+                .setReceivedBy(entity.getReceivedBy())
                 .setStatus(entity.getStatus())
                 .setIsLocked(entity.getIsLocked())
                 .setCreatedBy(entity.getCreatedBy())

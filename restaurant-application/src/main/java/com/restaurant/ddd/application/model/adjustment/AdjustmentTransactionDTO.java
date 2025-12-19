@@ -23,6 +23,7 @@ public class AdjustmentTransactionDTO {
     private UUID performedBy;
     private String performedByName;
     private UUID createdBy;
+    private String createdByName;
     private LocalDateTime createdDate;
     
     // Items

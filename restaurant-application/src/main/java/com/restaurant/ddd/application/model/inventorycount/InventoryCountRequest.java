@@ -11,5 +11,6 @@ public class InventoryCountRequest {
     private UUID warehouseId;
     private LocalDateTime countDate;
     private String notes;
+    private UUID performedBy;  // Người kiểm kê
     private List<InventoryCountItemRequest> items;
 }

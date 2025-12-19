@@ -13,5 +13,7 @@ public class StockOutItemRequest {
     private UUID materialId;
     private UUID unitId;
     private BigDecimal quantity;
+    private BigDecimal unitPrice;      // Giá bán (cho bán lẻ)
+    private BigDecimal totalAmount;    // Thành tiền (cho bán lẻ)
     private String notes;
 }

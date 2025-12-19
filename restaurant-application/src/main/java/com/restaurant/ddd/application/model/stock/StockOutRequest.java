@@ -16,6 +16,8 @@ public class StockOutRequest {
     private LocalDateTime transactionDate;
     private String referenceNumber;
     private String notes;
+    private UUID issuedBy;                     // Người xuất kho
+    private UUID receivedBy;                   // Người tiếp nhận (cho chuyển kho)
     private List<StockOutItemRequest> items;  // Danh sách nguyên liệu
     
     // Stock Out Type specific fields

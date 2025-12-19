@@ -23,7 +23,9 @@ public class StockOutTransaction {
     private LocalDateTime transactionDate;
     private String referenceNumber;
     private String notes;
-    private UUID performedBy;
+    private UUID performedBy;       // Người thực hiện
+    private UUID issuedBy;          // Người xuất kho
+    private UUID receivedBy;        // Người tiếp nhận (cho chuyển kho nội bộ)
     private DataStatus status;
     private Boolean isLocked;
     private UUID createdBy;

@@ -24,7 +24,8 @@ public class StockInTransaction {
     private LocalDateTime transactionDate;
     private String referenceNumber;
     private String notes;
-    private UUID performedBy;
+    private UUID performedBy;       // Người thực hiện
+    private UUID receivedBy;        // Người nhập kho
     private DataStatus status;
     private Boolean isLocked;
     private UUID createdBy;

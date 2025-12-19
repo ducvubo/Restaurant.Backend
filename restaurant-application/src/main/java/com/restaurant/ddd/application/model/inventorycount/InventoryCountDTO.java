@@ -20,6 +20,8 @@ public class InventoryCountDTO {
     private String adjustmentTransactionCode;
     private UUID performedBy;
     private String performedByName;
+    private UUID createdBy;
+    private String createdByName;
     private Integer status;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;

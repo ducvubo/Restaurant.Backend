@@ -16,5 +16,7 @@ public class StockInRequest {
     private LocalDateTime transactionDate;
     private String referenceNumber;
     private String notes;
+    private UUID receivedBy;  // Người nhập kho
+    private Integer stockInType; // 1=Nhập từ NCC, 2=Chuyển kho nội bộ
     private List<StockInItemRequest> items;  // Danh sách nguyên liệu
 }

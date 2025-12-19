@@ -14,5 +14,6 @@ public class AdjustmentTransactionRequest {
     private String reason;               // Bắt buộc
     private String referenceNumber;
     private String notes;
+    private UUID performedBy;            // Người điều chỉnh
     private List<AdjustmentItemRequest> items;
 }

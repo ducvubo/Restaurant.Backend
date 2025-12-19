@@ -51,6 +51,12 @@ public class StockOutTransactionJpaEntity extends BaseJpaEntity {
     @Column(name = "PERFORMED_BY")
     private UUID performedBy;
 
+    @Column(name = "ISSUED_BY")
+    private UUID issuedBy;
+
+    @Column(name = "RECEIVED_BY")
+    private UUID receivedBy;
+
     @Column(name = "IS_LOCKED")
     private Boolean isLocked;
 }

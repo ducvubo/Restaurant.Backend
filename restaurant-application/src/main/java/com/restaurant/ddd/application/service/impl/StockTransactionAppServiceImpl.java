@@ -13,6 +13,7 @@ import com.restaurant.ddd.domain.enums.StockOutType;
 import com.restaurant.ddd.domain.enums.StockInType;
 import com.restaurant.ddd.domain.model.*;
 import com.restaurant.ddd.domain.respository.*;
+import com.restaurant.ddd.infrastructure.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,7 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
     private final UnitRepository unitRepository;
     private final InventoryLedgerRepository inventoryLedgerRepository;
     private final InventoryLedgerAppService inventoryLedgerAppService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -55,12 +57,16 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
         
         // Create stock in transaction (DRAFT - not locked)
         StockInTransaction transaction = new StockInTransaction()
+                .setId(UUID.randomUUID())
                 .setTransactionCode(generateTransactionCode("IN"))
                 .setWarehouseId(request.getWarehouseId())
                 .setSupplierId(request.getSupplierId())
+                .setStockInType(StockInType.EXTERNAL.code())
                 .setTransactionDate(request.getTransactionDate() != null ? request.getTransactionDate() : LocalDateTime.now())
                 .setReferenceNumber(request.getReferenceNumber())
                 .setNotes(request.getNotes())
+                .setReceivedBy(request.getReceivedBy())
+                .setCreatedBy(SecurityUtils.getCurrentUserId())
                 .setStatus(DataStatus.ACTIVE)
                 .setIsLocked(false) // DRAFT - not locked yet
                 .setCreatedDate(LocalDateTime.now());
@@ -122,7 +128,11 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
         existing.setSupplierId(request.getSupplierId());
         existing.setTransactionDate(request.getTransactionDate());
         existing.setReferenceNumber(request.getReferenceNumber());
+        existing.setReceivedBy(request.getReceivedBy());
+        existing.setStockInType(request.getStockInType());
         existing.setNotes(request.getNotes());
+        existing.setUpdatedBy(SecurityUtils.getCurrentUserId());
+        existing.setUpdatedDate(LocalDateTime.now());
         
         // Create new items
         BigDecimal totalAmount = BigDecimal.ZERO;
@@ -186,12 +196,16 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
 
         // Create stock out transaction (DRAFT - not locked)
         StockOutTransaction transaction = new StockOutTransaction()
+                .setId(UUID.randomUUID())
                 .setTransactionCode(generateTransactionCode("OUT"))
                 .setWarehouseId(request.getWarehouseId())
                 .setDestinationBranchId(request.getDestinationBranchId())
                 .setTransactionDate(request.getTransactionDate() != null ? request.getTransactionDate() : LocalDateTime.now())
                 .setReferenceNumber(request.getReferenceNumber())
                 .setNotes(request.getNotes())
+                .setIssuedBy(request.getIssuedBy())
+                .setReceivedBy(request.getReceivedBy())
+                .setCreatedBy(SecurityUtils.getCurrentUserId())
                 .setStatus(DataStatus.ACTIVE)
                 .setIsLocked(false) // DRAFT - not locked yet
                 .setCreatedDate(LocalDateTime.now())
@@ -220,6 +234,8 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
                     .setMaterialId(itemRequest.getMaterialId())
                     .setUnitId(itemRequest.getUnitId())
                     .setQuantity(itemRequest.getQuantity())
+                    .setUnitPrice(itemRequest.getUnitPrice())
+                    .setTotalAmount(itemRequest.getTotalAmount())
                     .setNotes(itemRequest.getNotes());
             
             stockOutItemRepository.save(item);
@@ -262,7 +278,11 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
         existing.setDestinationBranchId(request.getDestinationBranchId());
         existing.setTransactionDate(request.getTransactionDate());
         existing.setReferenceNumber(request.getReferenceNumber());
+        existing.setIssuedBy(request.getIssuedBy());
+        existing.setReceivedBy(request.getReceivedBy());
         existing.setNotes(request.getNotes());
+        existing.setUpdatedBy(SecurityUtils.getCurrentUserId());
+        existing.setUpdatedDate(LocalDateTime.now());
         
         // Update stock out type fields
         if (request.getStockOutType() != null) {
@@ -288,6 +308,8 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
                     .setMaterialId(itemRequest.getMaterialId())
                     .setUnitId(itemRequest.getUnitId())
                     .setQuantity(itemRequest.getQuantity())
+                    .setUnitPrice(itemRequest.getUnitPrice())
+                    .setTotalAmount(itemRequest.getTotalAmount())
                     .setNotes(itemRequest.getNotes());
             
             stockOutItemRepository.save(item);
@@ -725,11 +747,23 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
         dto.setTotalAmount(transaction.getTotalAmount());
         dto.setIsLocked(transaction.getIsLocked());
         dto.setStatus(transaction.getStatus().code());
+        dto.setCreatedBy(transaction.getCreatedBy());
+        dto.setReceivedBy(transaction.getReceivedBy());
         dto.setCreatedDate(transaction.getCreatedDate());
         
         // Get warehouse name
         warehouseRepository.findById(transaction.getWarehouseId())
                 .ifPresent(wh -> dto.setWarehouseName(wh.getName()));
+        
+        // Load user names
+        if (transaction.getCreatedBy() != null) {
+            userRepository.findById(transaction.getCreatedBy())
+                .ifPresent(user -> dto.setCreatedByName(user.getFullName()));
+        }
+        if (transaction.getReceivedBy() != null) {
+            userRepository.findById(transaction.getReceivedBy())
+                .ifPresent(user -> dto.setReceivedByName(user.getFullName()));
+        }
         
         // Get supplier name
         if (transaction.getSupplierId() != null) {
@@ -774,6 +808,9 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
         dto.setTotalAmount(transaction.getTotalAmount());
         dto.setIsLocked(transaction.getIsLocked());
         dto.setStatus(transaction.getStatus().code());
+        dto.setCreatedBy(transaction.getCreatedBy());
+        dto.setIssuedBy(transaction.getIssuedBy());
+        dto.setReceivedBy(transaction.getReceivedBy());
         dto.setCreatedDate(transaction.getCreatedDate());
         
         // Map stock out type fields
@@ -788,6 +825,20 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
         // Get warehouse name
         warehouseRepository.findById(transaction.getWarehouseId())
                 .ifPresent(wh -> dto.setWarehouseName(wh.getName()));
+        
+        // Load user names
+        if (transaction.getCreatedBy() != null) {
+            userRepository.findById(transaction.getCreatedBy())
+                .ifPresent(user -> dto.setCreatedByName(user.getFullName()));
+        }
+        if (transaction.getIssuedBy() != null) {
+            userRepository.findById(transaction.getIssuedBy())
+                .ifPresent(user -> dto.setIssuedByName(user.getFullName()));
+        }
+        if (transaction.getReceivedBy() != null) {
+            userRepository.findById(transaction.getReceivedBy())
+                .ifPresent(user -> dto.setReceivedByName(user.getFullName()));
+        }
         
         // Get destination warehouse name
         if (transaction.getDestinationWarehouseId() != null) {
@@ -836,6 +887,8 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
         dto.setMaterialId(item.getMaterialId());
         dto.setUnitId(item.getUnitId());
         dto.setQuantity(item.getQuantity());
+        dto.setUnitPrice(item.getUnitPrice());
+        dto.setTotalAmount(item.getTotalAmount());
         dto.setNotes(item.getNotes());
         
         // Set material name

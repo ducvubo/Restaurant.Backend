@@ -39,8 +39,17 @@ public class StockTransactionDTO {
     private UUID destinationBranchId;
     private String notes;
     private UUID performedBy;
-    private Integer status;
+    private String performedByName;
+    
+    // User tracking fields
     private UUID createdBy;
+    private String createdByName;
+    private UUID receivedBy;           // Người nhập kho (IN) / Người tiếp nhận (OUT - internal transfer)
+    private String receivedByName;
+    private UUID issuedBy;             // Người xuất kho (OUT only)
+    private String issuedByName;
+    
+    private Integer status;
     private LocalDateTime createdDate;
     private Boolean isLocked;                      // Đã chốt phiếu hay chưa
     

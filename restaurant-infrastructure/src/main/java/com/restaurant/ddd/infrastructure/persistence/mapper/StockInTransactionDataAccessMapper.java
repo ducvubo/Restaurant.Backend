@@ -20,6 +20,9 @@ public class StockInTransactionDataAccessMapper {
         entity.setReferenceNumber(domain.getReferenceNumber());
         entity.setNotes(domain.getNotes());
         entity.setPerformedBy(domain.getPerformedBy());
+        entity.setReceivedBy(domain.getReceivedBy());
+        entity.setStockInType(domain.getStockInType());
+        entity.setRelatedTransactionId(domain.getRelatedTransactionId());
         entity.setIsLocked(domain.getIsLocked());
         entity.setStatus(domain.getStatus());
         entity.setCreatedBy(domain.getCreatedBy());
@@ -42,6 +45,9 @@ public class StockInTransactionDataAccessMapper {
                 .setReferenceNumber(entity.getReferenceNumber())
                 .setNotes(entity.getNotes())
                 .setPerformedBy(entity.getPerformedBy())
+                .setReceivedBy(entity.getReceivedBy())
+                .setStockInType(entity.getStockInType())
+                .setRelatedTransactionId(entity.getRelatedTransactionId())
                 .setIsLocked(entity.getIsLocked())
                 .setStatus(entity.getStatus())
                 .setCreatedBy(entity.getCreatedBy())
