@@ -10,6 +10,7 @@ import com.restaurant.ddd.domain.enums.ResultCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(name = "Stock Transaction Management", description = "APIs for stock in/out")
 @CrossOrigin
+@Slf4j
 public class StockTransactionController {
 
     private final StockTransactionAppService stockTransactionAppService;
@@ -167,19 +169,33 @@ public class StockTransactionController {
     @Operation(summary = "Export stock transaction to PDF")
     public ResponseEntity<byte[]> exportPdf(@RequestParam(name = "id") UUID id) {
         try {
+            log.info("[PDF Export] Starting PDF export for stock transaction: {}", id);
+            
             // Get transaction to determine filename
             var result = stockTransactionAppService.getTransaction(id);
             if (result.getData() == null) {
+                log.error("[PDF Export] Transaction not found: {}", id);
                 return ResponseEntity.notFound().build();
             }
             
             var transaction = result.getData();
+            
+            // Check if transactionType is null
+            if (transaction.getTransactionType() == null) {
+                log.error("[PDF Export] Transaction type is null for transaction: {}", id);
+                return ResponseEntity.badRequest().build();
+            }
+            
             boolean isStockIn = transaction.getTransactionType() == 1;
             String type = isStockIn ? "NhapKho" : "XuatKho";
             String filename = String.format("Phieu_%s_%s.pdf", type, transaction.getTransactionCode());
             
+            log.info("[PDF Export] Generating PDF for transaction: {} (type: {})", transaction.getTransactionCode(), type);
+            
             // Generate PDF
             byte[] pdfBytes = pdfExportService.exportStockTransactionToPdf(id);
+            
+            log.info("[PDF Export] PDF generated successfully, size: {} bytes", pdfBytes.length);
             
             // Set headers for PDF download
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
@@ -192,6 +208,7 @@ public class StockTransactionController {
                 .body(pdfBytes);
                 
         } catch (Exception e) {
+            log.error("[PDF Export] Error exporting PDF for transaction: {}", id, e);
             return ResponseEntity.internalServerError().build();
         }
     }

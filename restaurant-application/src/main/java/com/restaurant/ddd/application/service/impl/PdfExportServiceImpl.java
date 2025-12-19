@@ -23,6 +23,7 @@ import com.restaurant.ddd.application.service.PdfExportService;
 import com.restaurant.ddd.application.service.StockTransactionAppService;
 import com.restaurant.ddd.domain.enums.AdjustmentType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -32,6 +33,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PdfExportServiceImpl implements PdfExportService {
 
     private final AdjustmentTransactionAppService adjustmentService;
@@ -89,6 +91,10 @@ public class PdfExportServiceImpl implements PdfExportService {
                 .useAllAvailableWidth()
                 .setMarginBottom(15);
             
+            // Add adjuster info FIRST
+            if (adjustment.getCreatedByName() != null && !adjustment.getCreatedByName().isEmpty()) {
+                addInfoRow(infoTable, "Người điều chỉnh:", adjustment.getCreatedByName(), font, boldFont);
+            }
             
             addInfoRow(infoTable, "Kho:", adjustment.getWarehouseName(), font, boldFont);
             
@@ -141,13 +147,13 @@ public class PdfExportServiceImpl implements PdfExportService {
             
             document.add(itemsTable);
             
-            // Add signature section
+            // Add signature section - no names, just titles for manual signing
             Table signatureTable = new Table(UnitValue.createPercentArray(new float[]{1, 1}))
                 .useAllAvailableWidth()
                 .setMarginTop(30);
             
-            addSignatureCell(signatureTable, "Người lập phiếu", font, boldFont);
-            addSignatureCell(signatureTable, "Thủ kho", font, boldFont);
+            addSignatureCell(signatureTable, "Người lập phiếu", null, font, boldFont);
+            addSignatureCell(signatureTable, "Thủ kho", null, font, boldFont);
             
             document.add(signatureTable);
             
@@ -194,11 +200,18 @@ public class PdfExportServiceImpl implements PdfExportService {
         table.addCell(cell);
     }
     
-    private void addSignatureCell(Table table, String title, PdfFont font, PdfFont boldFont) {
+    private void addSignatureCell(Table table, String title, String name, PdfFont font, PdfFont boldFont) {
         Cell cell = new Cell()
-            .add(new Paragraph(title).setFont(boldFont).setFontSize(10).setTextAlignment(TextAlignment.CENTER))
-            .add(new Paragraph("\n\n\n").setFont(font).setFontSize(10))
-            .add(new Paragraph("(Ký, ghi rõ họ tên)").setFont(font).setFontSize(9).setTextAlignment(TextAlignment.CENTER).setItalic())
+            .add(new Paragraph(title).setFont(boldFont).setFontSize(11).setTextAlignment(TextAlignment.CENTER));
+        
+        if (name != null && !name.isEmpty()) {
+            cell.add(new Paragraph("\n").setFont(font).setFontSize(10))
+                .add(new Paragraph(name).setFont(font).setFontSize(10).setTextAlignment(TextAlignment.CENTER));
+        } else {
+            cell.add(new Paragraph("\n\n\n").setFont(font).setFontSize(10));
+        }
+        
+        cell.add(new Paragraph("(Ký, ghi rõ họ tên)").setFont(font).setFontSize(9).setTextAlignment(TextAlignment.CENTER).setItalic())
             .setBorder(Border.NO_BORDER)
             .setPadding(5)
             .setTextAlignment(TextAlignment.CENTER);
@@ -247,13 +260,17 @@ public class PdfExportServiceImpl implements PdfExportService {
     @Override
     public byte[] exportStockTransactionToPdf(UUID stockTransactionId) {
         try {
+            log.info("[PDF Service] Starting PDF generation for stock transaction: {}", stockTransactionId);
+            
             // Fetch stock transaction data
             var result = stockTransactionService.getTransaction(stockTransactionId);
             if (result.getData() == null) {
+                log.error("[PDF Service] Transaction data is null for ID: {}", stockTransactionId);
                 throw new RuntimeException("Đã xảy ra lỗi khi tải thông tin phiếu");
             }
             
             var transaction = result.getData();
+            log.info("[PDF Service] Transaction loaded: {}, type: {}", transaction.getTransactionCode(), transaction.getTransactionType());
             
             // Create PDF in memory
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -290,6 +307,21 @@ public class PdfExportServiceImpl implements PdfExportService {
             Table infoTable = new Table(UnitValue.createPercentArray(new float[]{1, 1}))
                 .useAllAvailableWidth()
                 .setMarginBottom(15);
+            
+            // Add performer info FIRST
+            if (isStockIn) {
+                if (transaction.getReceivedByName() != null && !transaction.getReceivedByName().isEmpty()) {
+                    addInfoRow(infoTable, "Người nhập kho:", transaction.getReceivedByName(), font, boldFont);
+                }
+            } else {
+                if (transaction.getIssuedByName() != null && !transaction.getIssuedByName().isEmpty()) {
+                    addInfoRow(infoTable, "Người xuất kho:", transaction.getIssuedByName(), font, boldFont);
+                }
+                Integer stockOutType = transaction.getStockOutType();
+                if (stockOutType != null && stockOutType == 1 && transaction.getReceivedByName() != null && !transaction.getReceivedByName().isEmpty()) {
+                    addInfoRow(infoTable, "Người tiếp nhận:", transaction.getReceivedByName(), font, boldFont);
+                }
+            }
             
             addInfoRow(infoTable, "Kho:", transaction.getWarehouseName(), font, boldFont);
             
@@ -406,13 +438,20 @@ public class PdfExportServiceImpl implements PdfExportService {
                 .setMarginBottom(20);
             document.add(totalPara);
             
-            // Add signature section
+            // Add signature section - no names, just titles for manual signing
             Table signatureTable = new Table(UnitValue.createPercentArray(new float[]{1, 1}))
                 .useAllAvailableWidth()
                 .setMarginTop(30);
             
-            addSignatureCell(signatureTable, "Người lập phiếu", font, boldFont);
-            addSignatureCell(signatureTable, "Thủ kho", font, boldFont);
+            if (isStockIn) {
+                // Phiếu nhập kho: Người lập phiếu + Thủ kho
+                addSignatureCell(signatureTable, "Người lập phiếu", null, font, boldFont);
+                addSignatureCell(signatureTable, "Thủ kho", null, font, boldFont);
+            } else {
+                // Phiếu xuất kho: Người lập phiếu + Thủ kho
+                addSignatureCell(signatureTable, "Người lập phiếu", null, font, boldFont);
+                addSignatureCell(signatureTable, "Thủ kho", null, font, boldFont);
+            }
             
             document.add(signatureTable);
             
@@ -467,6 +506,11 @@ public class PdfExportServiceImpl implements PdfExportService {
                 .useAllAvailableWidth()
                 .setMarginBottom(15);
             
+            // Add performer info FIRST
+            if (transaction.getPerformedByName() != null && !transaction.getPerformedByName().isEmpty()) {
+                addInfoRow(infoTable, "Người kiểm kê:", transaction.getPerformedByName(), font, boldFont);
+            }
+            
             addInfoRow(infoTable, "Kho:", transaction.getWarehouseName(), font, boldFont);
             addInfoRow(infoTable, "Ngày kiểm kê:", 
                 transaction.getCountDate().format(DATE_FORMATTER), font, boldFont);
@@ -474,10 +518,6 @@ public class PdfExportServiceImpl implements PdfExportService {
             
             if (transaction.getAdjustmentTransactionCode() != null) {
                 addInfoRow(infoTable, "Phiếu điều chỉnh:", transaction.getAdjustmentTransactionCode(), font, boldFont);
-            }
-            
-            if (transaction.getPerformedByName() != null) {
-                addInfoRow(infoTable, "Người thực hiện:", transaction.getPerformedByName(), font, boldFont);
             }
             
             if (transaction.getNotes() != null && !transaction.getNotes().isEmpty()) {
@@ -541,13 +581,13 @@ public class PdfExportServiceImpl implements PdfExportService {
                 .setMarginBottom(20);
             document.add(totalPara);
             
-            // Add signature section
+            // Add signature section - no names, just titles for manual signing
             Table signatureTable = new Table(UnitValue.createPercentArray(new float[]{1, 1}))
                 .useAllAvailableWidth()
                 .setMarginTop(30);
             
-            addSignatureCell(signatureTable, "Người kiểm kê", font, boldFont);
-            addSignatureCell(signatureTable, "Thủ kho", font, boldFont);
+            addSignatureCell(signatureTable, "Người lập phiếu", null, font, boldFont);
+            addSignatureCell(signatureTable, "Thủ kho", null, font, boldFont);
             
             document.add(signatureTable);
             

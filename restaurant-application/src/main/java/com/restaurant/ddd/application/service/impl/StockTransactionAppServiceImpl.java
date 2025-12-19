@@ -751,6 +751,7 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
         dto.setSupplierId(transaction.getSupplierId());
         dto.setStockInType(transaction.getStockInType());
         dto.setRelatedTransactionId(transaction.getRelatedTransactionId());
+        dto.setTransactionType(1); // STOCK_IN
         dto.setTransactionDate(transaction.getTransactionDate());
         dto.setReferenceNumber(transaction.getReferenceNumber());
         dto.setNotes(transaction.getNotes());
@@ -963,6 +964,7 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
         stockIn.setReferenceNumber("Tự động từ: " + stockOut.getTransactionCode());
         stockIn.setNotes("Phiếu nhập tự động từ chuyển kho nội bộ: " + stockOut.getTransactionCode());
         stockIn.setPerformedBy(stockOut.getPerformedBy());
+        stockIn.setReceivedBy(stockOut.getReceivedBy()); // Người tiếp nhận từ phiếu xuất
         stockIn.setStatus(DataStatus.ACTIVE);
         stockIn.setIsLocked(false);
         stockIn.setCreatedBy(stockOut.getCreatedBy());
