@@ -374,6 +374,20 @@ public class PdfExportServiceImpl implements PdfExportService {
             
             document.add(infoTable);
             
+            // Determine if we should show price columns
+            // Show prices for: supplier purchase (stockInType=1) and retail sale (stockOutType=2)
+            // Hide prices for: internal transfer (stockOutType=1, stockInType=2) and disposal (stockOutType=3)
+            boolean showPriceColumns = false;
+            if (isStockIn) {
+                // Stock In: show prices only for supplier purchase (type 1)
+                Integer stockInType = transaction.getStockInType();
+                showPriceColumns = (stockInType != null && stockInType == 1);
+            } else {
+                // Stock Out: show prices only for retail sale (type 2)
+                Integer stockOutType = transaction.getStockOutType();
+                showPriceColumns = (stockOutType != null && stockOutType == 2);
+            }
+            
             // Add items table
             Paragraph itemsTitle = new Paragraph("Danh sách nguyên liệu:")
                 .setFont(boldFont)
@@ -381,18 +395,32 @@ public class PdfExportServiceImpl implements PdfExportService {
                 .setMarginBottom(10);
             document.add(itemsTitle);
             
-            Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{1, 3, 2, 2, 2, 2, 3}))
-                .useAllAvailableWidth()
-                .setMarginBottom(20);
-            
-            // Table header
-            addTableHeader(itemsTable, "STT", boldFont);
-            addTableHeader(itemsTable, "Tên nguyên liệu", boldFont);
-            addTableHeader(itemsTable, "Đơn vị", boldFont);
-            addTableHeader(itemsTable, "Số lượng", boldFont);
-            addTableHeader(itemsTable, "Đơn giá", boldFont);
-            addTableHeader(itemsTable, "Thành tiền", boldFont);
-            addTableHeader(itemsTable, "Ghi chú", boldFont);
+            Table itemsTable;
+            if (showPriceColumns) {
+                itemsTable = new Table(UnitValue.createPercentArray(new float[]{1, 3, 2, 2, 2, 2, 3}))
+                    .useAllAvailableWidth()
+                    .setMarginBottom(20);
+                
+                // Table header with prices
+                addTableHeader(itemsTable, "STT", boldFont);
+                addTableHeader(itemsTable, "Tên nguyên liệu", boldFont);
+                addTableHeader(itemsTable, "Đơn vị", boldFont);
+                addTableHeader(itemsTable, "Số lượng", boldFont);
+                addTableHeader(itemsTable, "Đơn giá", boldFont);
+                addTableHeader(itemsTable, "Thành tiền", boldFont);
+                addTableHeader(itemsTable, "Ghi chú", boldFont);
+            } else {
+                itemsTable = new Table(UnitValue.createPercentArray(new float[]{1, 4, 2, 2, 4}))
+                    .useAllAvailableWidth()
+                    .setMarginBottom(20);
+                
+                // Table header without prices
+                addTableHeader(itemsTable, "STT", boldFont);
+                addTableHeader(itemsTable, "Tên nguyên liệu", boldFont);
+                addTableHeader(itemsTable, "Đơn vị", boldFont);
+                addTableHeader(itemsTable, "Số lượng", boldFont);
+                addTableHeader(itemsTable, "Ghi chú", boldFont);
+            }
             
             // Table rows
             int index = 1;
@@ -404,8 +432,10 @@ public class PdfExportServiceImpl implements PdfExportService {
                     addTableCell(itemsTable, item.getMaterialName(), font, TextAlignment.LEFT);
                     addTableCell(itemsTable, item.getUnitName(), font, TextAlignment.CENTER);
                     addTableCell(itemsTable, formatNumber(item.getQuantity()), font, TextAlignment.RIGHT);
-                    addTableCell(itemsTable, formatNumber(item.getUnitPrice()), font, TextAlignment.RIGHT);
-                    addTableCell(itemsTable, formatNumber(item.getTotalAmount()), font, TextAlignment.RIGHT);
+                    if (showPriceColumns) {
+                        addTableCell(itemsTable, formatNumber(item.getUnitPrice()), font, TextAlignment.RIGHT);
+                        addTableCell(itemsTable, formatNumber(item.getTotalAmount()), font, TextAlignment.RIGHT);
+                    }
                     addTableCell(itemsTable, item.getNotes() != null ? item.getNotes() : "", font, TextAlignment.LEFT);
                     
                     if (item.getTotalAmount() != null) {
@@ -418,8 +448,10 @@ public class PdfExportServiceImpl implements PdfExportService {
                     addTableCell(itemsTable, item.getMaterialName(), font, TextAlignment.LEFT);
                     addTableCell(itemsTable, item.getUnitName(), font, TextAlignment.CENTER);
                     addTableCell(itemsTable, formatNumber(item.getQuantity()), font, TextAlignment.RIGHT);
-                    addTableCell(itemsTable, formatNumber(item.getUnitPrice()), font, TextAlignment.RIGHT);
-                    addTableCell(itemsTable, formatNumber(item.getTotalAmount()), font, TextAlignment.RIGHT);
+                    if (showPriceColumns) {
+                        addTableCell(itemsTable, formatNumber(item.getUnitPrice()), font, TextAlignment.RIGHT);
+                        addTableCell(itemsTable, formatNumber(item.getTotalAmount()), font, TextAlignment.RIGHT);
+                    }
                     addTableCell(itemsTable, item.getNotes() != null ? item.getNotes() : "", font, TextAlignment.LEFT);
                     
                     if (item.getTotalAmount() != null) {
@@ -430,13 +462,15 @@ public class PdfExportServiceImpl implements PdfExportService {
             
             document.add(itemsTable);
             
-            // Add total amount
-            Paragraph totalPara = new Paragraph("Tổng tiền: " + formatNumber(grandTotal) + " đ")
-                .setFont(boldFont)
-                .setFontSize(12)
-                .setTextAlignment(TextAlignment.RIGHT)
-                .setMarginBottom(20);
-            document.add(totalPara);
+            // Add total amount only if showing prices
+            if (showPriceColumns) {
+                Paragraph totalPara = new Paragraph("Tổng tiền: " + formatNumber(grandTotal) + " đ")
+                    .setFont(boldFont)
+                    .setFontSize(12)
+                    .setTextAlignment(TextAlignment.RIGHT)
+                    .setMarginBottom(20);
+                document.add(totalPara);
+            }
             
             // Add signature section - no names, just titles for manual signing
             Table signatureTable = new Table(UnitValue.createPercentArray(new float[]{1, 1}))
