@@ -26,7 +26,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -47,6 +49,7 @@ public class StockOutAppServiceImpl implements StockOutAppService {
     private final InventoryLedgerRepository inventoryLedgerRepository;
     private final InventoryLedgerAppService inventoryLedgerAppService;
     private final UserRepository userRepository;
+    private final com.restaurant.ddd.application.service.UnitConversionService unitConversionService;
 
     @Override
     @Transactional
@@ -355,20 +358,42 @@ public class StockOutAppServiceImpl implements StockOutAppService {
         List<LedgerPreviewItemDTO> previewItems = new ArrayList<>();
         BigDecimal grandTotal = BigDecimal.ZERO;
         
+        // Track virtual remaining quantities across items (to handle same material multiple times)
+        Map<UUID, BigDecimal> virtualRemainingMap = new HashMap<>();
+        
         for (StockOutItem item : items) {
             List<InventoryLedger> availableBatches = inventoryLedgerRepository.findAvailableStock(
                 transaction.getWarehouseId(),
                 item.getMaterialId()
             );
             
-            BigDecimal remainingQty = item.getQuantity();
+            // Convert item quantity to base unit for FIFO calculation
+            UUID baseUnitId = unitConversionService.getBaseUnit(item.getMaterialId());
+            BigDecimal baseQuantity = item.getQuantity();
+            
+            if (item.getUnitId() != null && !item.getUnitId().equals(baseUnitId)) {
+                try {
+                    BigDecimal conversionFactor = unitConversionService.getConversionFactor(
+                        item.getUnitId(), baseUnitId);
+                    baseQuantity = item.getQuantity().multiply(conversionFactor);
+                } catch (IllegalArgumentException e) {
+                    return new ResultMessage<>(ResultCode.ERROR,
+                        "Không tìm thấy hệ số chuyển đổi cho đơn vị của item", null);
+                }
+            }
+            
+            BigDecimal remainingQty = baseQuantity;
             List<LedgerPreviewBatchDTO> batchPreviews = new ArrayList<>();
             BigDecimal itemTotal = BigDecimal.ZERO;
             
             for (InventoryLedger batch : availableBatches) {
                 if (remainingQty.compareTo(BigDecimal.ZERO) <= 0) break;
                 
-                BigDecimal deductQty = remainingQty.min(batch.getRemainingQuantity());
+                // Get virtual remaining (considering previous deductions from other items)
+                BigDecimal virtualRemaining = virtualRemainingMap.getOrDefault(
+                    batch.getId(), batch.getRemainingQuantity());
+                
+                BigDecimal deductQty = remainingQty.min(virtualRemaining);
                 
                 if (deductQty.compareTo(BigDecimal.ZERO) > 0) {
                     BigDecimal cost = deductQty.multiply(batch.getUnitPrice());
@@ -380,10 +405,14 @@ public class StockOutAppServiceImpl implements StockOutAppService {
                     batchPreview.setQuantityUsed(deductQty);
                     batchPreview.setUnitPrice(batch.getUnitPrice());
                     batchPreview.setTotalAmount(cost);
-                    batchPreview.setRemainingAfter(batch.getRemainingQuantity().subtract(deductQty));
+                    batchPreview.setRemainingBefore(virtualRemaining);
+                    batchPreview.setRemainingAfter(virtualRemaining.subtract(deductQty));
                     
                     batchPreviews.add(batchPreview);
                     itemTotal = itemTotal.add(cost);
+                    
+                    // Update virtual remaining for next item
+                    virtualRemainingMap.put(batch.getId(), virtualRemaining.subtract(deductQty));
                 }
                 
                 remainingQty = remainingQty.subtract(deductQty);
@@ -393,9 +422,19 @@ public class StockOutAppServiceImpl implements StockOutAppService {
                 .map(Material::getName)
                 .orElse("Unknown");
             
+            // Get base unit symbol
+            String baseUnitSymbol = "";
+            UUID symbolBaseUnitId = unitConversionService.getBaseUnit(item.getMaterialId());
+            if (symbolBaseUnitId != null) {
+                baseUnitSymbol = unitRepository.findById(symbolBaseUnitId)
+                    .map(u -> u.getCode())
+                    .orElse("");
+            }
+            
             LedgerPreviewItemDTO previewItem = new LedgerPreviewItemDTO();
             previewItem.setMaterialId(item.getMaterialId());
             previewItem.setMaterialName(materialName);
+            previewItem.setBaseUnitSymbol(baseUnitSymbol);
             previewItem.setBatches(batchPreviews);
             previewItem.setTotalQuantity(item.getQuantity());
             previewItem.setTotalAmount(itemTotal);
@@ -418,7 +457,22 @@ public class StockOutAppServiceImpl implements StockOutAppService {
                 item.getMaterialId()
         );
 
-        BigDecimal remainingQty = item.getQuantity();
+        // Convert item quantity to base unit for FIFO deduction
+        UUID baseUnitId = unitConversionService.getBaseUnit(item.getMaterialId());
+        BigDecimal baseQuantity = item.getQuantity();
+        
+        if (item.getUnitId() != null && !item.getUnitId().equals(baseUnitId)) {
+            try {
+                BigDecimal conversionFactor = unitConversionService.getConversionFactor(
+                    item.getUnitId(), baseUnitId);
+                baseQuantity = item.getQuantity().multiply(conversionFactor);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalStateException(
+                    "Không tìm thấy hệ số chuyển đổi cho đơn vị của item: " + item.getMaterialId());
+            }
+        }
+        
+        BigDecimal remainingQty = baseQuantity;
         BigDecimal totalCost = BigDecimal.ZERO;
 
         for (InventoryLedger batch : availableBatches) {
@@ -517,6 +571,16 @@ public class StockOutAppServiceImpl implements StockOutAppService {
         
         List<StockInItem> stockInItems = stockInItemRepository.findByStockInTransactionId(savedStockIn.getId());
         for (StockInItem item : stockInItems) {
+            // Get base unit for material
+            UUID baseUnitId = unitConversionService.getBaseUnit(item.getMaterialId());
+            
+            // Get conversion factor
+            BigDecimal conversionFactor = unitConversionService.getConversionFactor(
+                item.getUnitId(), baseUnitId);
+            
+            // Convert quantity to base unit
+            BigDecimal baseQuantity = item.getQuantity().multiply(conversionFactor);
+            
             InventoryLedger ledger = new InventoryLedger();
             ledger.setId(UUID.randomUUID());
             ledger.setWarehouseId(savedStockIn.getWarehouseId());
@@ -524,8 +588,19 @@ public class StockOutAppServiceImpl implements StockOutAppService {
             ledger.setTransactionId(savedStockIn.getId());
             ledger.setTransactionCode(savedStockIn.getTransactionCode());
             ledger.setTransactionDate(savedStockIn.getTransactionDate());
-            ledger.setQuantity(item.getQuantity());
-            ledger.setRemainingQuantity(item.getQuantity());
+            
+            // Original info (user input)
+            ledger.setOriginalUnitId(item.getUnitId());
+            ledger.setOriginalQuantity(item.getQuantity());
+            
+            // Base unit info (snapshot)
+            ledger.setBaseUnitId(baseUnitId);
+            ledger.setConversionFactor(conversionFactor);
+            
+            // Converted quantity
+            ledger.setQuantity(baseQuantity);
+            ledger.setRemainingQuantity(baseQuantity);
+            ledger.setUnitId(baseUnitId);
             ledger.setUnitPrice(item.getUnitPrice());
             ledger.setInventoryMethod(InventoryMethod.FIFO);
             ledger.setStatus(DataStatus.ACTIVE);

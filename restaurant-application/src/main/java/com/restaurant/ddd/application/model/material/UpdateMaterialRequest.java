@@ -15,7 +15,6 @@ public class UpdateMaterialRequest {
     private String name;
     private String category;
     private UUID categoryId;
-    private UUID unitId;
     private BigDecimal unitPrice;
     private BigDecimal minStockLevel;
     private BigDecimal maxStockLevel;

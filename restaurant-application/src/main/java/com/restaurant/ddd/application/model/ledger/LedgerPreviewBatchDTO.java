@@ -14,5 +14,6 @@ public class LedgerPreviewBatchDTO {
     private BigDecimal quantityUsed;
     private BigDecimal unitPrice;
     private BigDecimal totalAmount;
-    private BigDecimal remainingAfter;
+    private BigDecimal remainingBefore;  // Current remaining before deduct
+    private BigDecimal remainingAfter;   // Remaining after deduct
 }

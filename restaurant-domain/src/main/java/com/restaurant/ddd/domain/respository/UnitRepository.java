@@ -19,7 +19,6 @@ public interface UnitRepository {
     List<Unit> findAll();
     Page<Unit> findAll(String keyword, Integer status, Pageable pageable);
     List<Unit> findByStatus(DataStatus status);
-    List<Unit> findBaseUnits(); // Find units where baseUnitId is null
     void deleteById(UUID id);
     boolean existsByCode(String code);
 }

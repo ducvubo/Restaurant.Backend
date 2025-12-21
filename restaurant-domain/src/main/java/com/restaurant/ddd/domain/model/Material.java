@@ -20,7 +20,6 @@ public class Material {
     private String name;
     private UUID categoryId;
     private String category; // Deprecated, kept for backward compatibility if needed, or effectively unused
-    private UUID unitId; // Primary unit
     private BigDecimal unitPrice;
     private BigDecimal minStockLevel;
     private BigDecimal maxStockLevel;
@@ -40,9 +39,6 @@ public class Material {
         }
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Tên nguyên vật liệu không được để trống");
-        }
-        if (unitId == null) {
-            throw new IllegalArgumentException("Đơn vị tính không được để trống");
         }
         if (unitPrice != null && unitPrice.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Đơn giá không được âm");

@@ -31,4 +31,9 @@ public interface InventoryLedgerRepository {
         LocalDateTime endDate,
         Pageable pageable
     );
+    
+    /**
+     * Count ledger entries by material and original unit
+     */
+    long countByMaterialIdAndOriginalUnitId(UUID materialId, UUID unitId);
 }

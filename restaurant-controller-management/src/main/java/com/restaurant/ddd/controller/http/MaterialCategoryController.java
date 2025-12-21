@@ -61,6 +61,13 @@ public class MaterialCategoryController {
         return ResponseEntity.ok(ResultUtil.data(result.getData(), result.getMessage()));
     }
 
+    @GetMapping("/get-all")
+    @Operation(summary = "Get all active material categories")
+    public ResponseEntity<ResultMessage<java.util.List<MaterialCategoryDTO>>> getAll() {
+        var result = service.getAll();
+        return ResponseEntity.ok(ResultUtil.data(result.getData(), result.getMessage()));
+    }
+
     @PostMapping("/delete")
     @Operation(summary = "Delete material category")
     public ResponseEntity<ResultMessage<String>> delete(@RequestParam(name = "id") UUID id) {

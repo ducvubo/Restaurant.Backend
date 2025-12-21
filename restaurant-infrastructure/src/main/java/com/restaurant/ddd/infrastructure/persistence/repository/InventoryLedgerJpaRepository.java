@@ -22,7 +22,7 @@ public interface InventoryLedgerJpaRepository extends
            "AND i.materialId = :materialId " +
            "AND i.inventoryMethod = :inventoryMethod " +
            "AND i.remainingQuantity > 0 " +
-           "ORDER BY i.transactionDate ASC, i.createdDate ASC")
+           "ORDER BY i.transactionDate ASC, i.createdDate ASC, i.id ASC")
     List<InventoryLedgerJpaEntity> findByWarehouseIdAndMaterialIdAndInventoryMethod(
             @Param("warehouseId") UUID warehouseId, 
             @Param("materialId") UUID materialId, 
@@ -43,4 +43,10 @@ public interface InventoryLedgerJpaRepository extends
     List<InventoryLedgerJpaEntity> findByWarehouseIdAndRemainingQuantityGreaterThan(
             @Param("warehouseId") UUID warehouseId,
             @Param("minQuantity") BigDecimal minQuantity);
+    
+    @Query("SELECT COUNT(i) FROM InventoryLedgerJpaEntity i " +
+           "WHERE i.materialId = :materialId AND (i.originalUnitId = :unitId OR i.baseUnitId = :unitId OR i.unitId = :unitId)")
+    long countByMaterialIdAndOriginalUnitId(
+            @Param("materialId") UUID materialId,
+            @Param("unitId") UUID unitId);
 }

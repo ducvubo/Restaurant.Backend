@@ -41,9 +41,6 @@ public class UnitAppServiceImpl implements UnitAppService {
         Unit unit = new Unit();
         unit.setCode(request.getCode());
         unit.setName(request.getName());
-        unit.setSymbol(request.getSymbol());
-        unit.setBaseUnitId(request.getBaseUnitId());
-        unit.setConversionRate(request.getConversionRate());
         unit.setDescription(request.getDescription());
         unit.setStatus(DataStatus.ACTIVE);
         unit.setCreatedBy(SecurityUtils.getCurrentUserId());
@@ -75,15 +72,7 @@ public class UnitAppServiceImpl implements UnitAppService {
     }
 
     @Override
-    public List<UnitDTO> getBaseUnits() {
-        log.info("Unit Application Service: getBaseUnits");
-        return unitRepository.findBaseUnits().stream()
-                .map(UnitMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public UnitListResponse getList(UnitListRequest request) {
+    public UnitListResponseNew getList(UnitListRequestNew request) {
         log.info("Unit Application Service: getList - keyword: {}, status: {}, page: {}, size: {}",
                 request.getKeyword(), request.getStatus(), request.getPage(), request.getSize());
 
@@ -110,7 +99,7 @@ public class UnitAppServiceImpl implements UnitAppService {
         );
 
         // Map to DTOs
-        UnitListResponse response = new UnitListResponse();
+        UnitListResponseNew response = new UnitListResponseNew();
         response.setItems(page.getContent().stream().map(UnitMapper::toDTO).collect(Collectors.toList()));
         response.setPage(request.getPage());
         response.setSize(request.getSize());
@@ -136,9 +125,6 @@ public class UnitAppServiceImpl implements UnitAppService {
         // Update fields
         unit.setCode(request.getCode());
         unit.setName(request.getName());
-        unit.setSymbol(request.getSymbol());
-        unit.setBaseUnitId(request.getBaseUnitId());
-        unit.setConversionRate(request.getConversionRate());
         unit.setDescription(request.getDescription());
         unit.setUpdatedBy(SecurityUtils.getCurrentUserId());
 

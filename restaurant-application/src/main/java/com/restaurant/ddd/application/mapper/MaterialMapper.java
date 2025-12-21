@@ -14,7 +14,6 @@ public class MaterialMapper {
         dto.setName(material.getName());
         dto.setCategory(material.getCategory());
         dto.setCategoryId(material.getCategoryId());
-        dto.setUnitId(material.getUnitId());
         dto.setUnitPrice(material.getUnitPrice());
         dto.setMinStockLevel(material.getMinStockLevel());
         dto.setMaxStockLevel(material.getMaxStockLevel());

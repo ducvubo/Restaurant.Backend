@@ -6,6 +6,7 @@ import com.restaurant.ddd.application.model.ledger.LedgerPreviewResponse;
 import com.restaurant.ddd.application.model.stock.*;
 import com.restaurant.ddd.application.service.InventoryLedgerAppService;
 import com.restaurant.ddd.application.service.StockTransactionAppService;
+import com.restaurant.ddd.application.service.UnitConversionService;
 import com.restaurant.ddd.domain.enums.DataStatus;
 import com.restaurant.ddd.domain.enums.InventoryMethod;
 import com.restaurant.ddd.domain.enums.ResultCode;
@@ -41,6 +42,7 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
     private final InventoryLedgerRepository inventoryLedgerRepository;
     private final InventoryLedgerAppService inventoryLedgerAppService;
     private final UserRepository userRepository;
+    private final UnitConversionService unitConversionService;
 
     @Override
     @Transactional
@@ -682,6 +684,16 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
 
     // Helper methods
     private void createInventoryLedgerForStockIn(StockInTransaction transaction, StockInItem item) {
+        // Get base unit for material
+        UUID baseUnitId = unitConversionService.getBaseUnit(item.getMaterialId());
+        
+        // Get conversion factor
+        BigDecimal conversionFactor = unitConversionService.getConversionFactor(
+            item.getUnitId(), baseUnitId);
+        
+        // Convert quantity to base unit
+        BigDecimal baseQuantity = item.getQuantity().multiply(conversionFactor);
+        
         InventoryLedger ledger = new InventoryLedger()
                 .setId(UUID.randomUUID())
                 .setWarehouseId(transaction.getWarehouseId())
@@ -690,10 +702,20 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
                 .setTransactionCode(transaction.getTransactionCode())
                 .setTransactionDate(transaction.getTransactionDate())
                 .setInventoryMethod(InventoryMethod.FIFO)
-                .setQuantity(item.getQuantity())
-                .setUnitId(item.getUnitId())
+                
+                // Original info (user input)
+                .setOriginalUnitId(item.getUnitId())
+                .setOriginalQuantity(item.getQuantity())
+                
+                // Base unit info (snapshot)
+                .setBaseUnitId(baseUnitId)
+                .setConversionFactor(conversionFactor)
+                
+                // Converted quantity
+                .setQuantity(baseQuantity)
+                .setUnitId(baseUnitId)  // Store as base unit
                 .setUnitPrice(item.getUnitPrice())
-                .setRemainingQuantity(item.getQuantity())
+                .setRemainingQuantity(baseQuantity)
                 .setStatus(DataStatus.ACTIVE)
                 .setCreatedDate(LocalDateTime.now());
         
@@ -1017,6 +1039,11 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
         
         List<StockInItem> stockInItems = stockInItemRepository.findByStockInTransactionId(savedStockIn.getId());
         for (StockInItem item : stockInItems) {
+            // Get base unit for material
+            UUID baseUnitId = unitConversionService.getBaseUnit(item.getMaterialId());
+            BigDecimal conversionFactor = unitConversionService.getConversionFactor(item.getUnitId(), baseUnitId);
+            BigDecimal baseQuantity = item.getQuantity().multiply(conversionFactor);
+            
             InventoryLedger ledger = new InventoryLedger();
             ledger.setId(UUID.randomUUID());
             ledger.setWarehouseId(savedStockIn.getWarehouseId());
@@ -1024,8 +1051,20 @@ public class StockTransactionAppServiceImpl implements StockTransactionAppServic
             ledger.setTransactionId(savedStockIn.getId());
             ledger.setTransactionCode(savedStockIn.getTransactionCode());
             ledger.setTransactionDate(savedStockIn.getTransactionDate());
-            ledger.setQuantity(item.getQuantity());
-            ledger.setRemainingQuantity(item.getQuantity());
+            ledger.setInventoryMethod(InventoryMethod.FIFO);
+            
+            // Original info (user input)
+            ledger.setOriginalUnitId(item.getUnitId());
+            ledger.setOriginalQuantity(item.getQuantity());
+            
+            // Base unit info (snapshot)
+            ledger.setBaseUnitId(baseUnitId);
+            ledger.setConversionFactor(conversionFactor);
+            
+            // Converted quantity
+            ledger.setQuantity(baseQuantity);
+            ledger.setUnitId(baseUnitId);
+            ledger.setRemainingQuantity(baseQuantity);
             ledger.setUnitPrice(item.getUnitPrice());
             ledger.setStatus(DataStatus.ACTIVE);
             ledger.setCreatedDate(LocalDateTime.now());

@@ -78,14 +78,6 @@ public class UnitRepositoryImpl implements UnitRepository {
     }
 
     @Override
-    public List<Unit> findBaseUnits() {
-        log.debug("Finding base units");
-        return unitJpaRepository.findBaseUnits().stream()
-                .map(unitDataAccessMapper::toDomain)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public void deleteById(UUID id) {
         log.debug("Deleting unit by id: {}", id);
         unitJpaRepository.deleteById(id);

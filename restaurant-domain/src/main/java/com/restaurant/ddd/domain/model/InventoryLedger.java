@@ -29,6 +29,13 @@ public class InventoryLedger {
     private BigDecimal remainingQuantity;  // Số lượng còn lại (cho FIFO)
     private DataStatus status;
     private String batchNumber;
+    
+    // Unit conversion snapshot fields
+    private UUID originalUnitId;           // Đơn vị người dùng nhập (snapshot)
+    private BigDecimal originalQuantity;   // Số lượng gốc người dùng nhập
+    private UUID baseUnitId;               // Đơn vị cơ sở tại thời điểm giao dịch (snapshot)
+    private BigDecimal conversionFactor;   // Hệ số chuyển đổi tại thời điểm giao dịch (snapshot)
+    
     private LocalDateTime createdDate;
 
     public void calculateTotalValue() {

@@ -17,8 +17,6 @@ public class MaterialDTO {
     private String category;
     private UUID categoryId;
     private String categoryName; // For display
-    private UUID unitId;
-    private String unitName; // For display
     private BigDecimal unitPrice;
     private BigDecimal minStockLevel;
     private BigDecimal maxStockLevel;

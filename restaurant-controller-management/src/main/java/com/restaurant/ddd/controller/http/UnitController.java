@@ -59,17 +59,10 @@ public class UnitController {
         return ResultUtil.data(units, ResultCode.SUCCESS);
     }
 
-    @Operation(summary = "Lấy danh sách đơn vị tính cơ bản")
-    @GetMapping("/base-units")
-    public ResultMessage<List<UnitDTO>> getBaseUnits() {
-        List<UnitDTO> units = unitAppService.getBaseUnits();
-        return ResultUtil.data(units, "Lấy danh sách đơn vị cơ bản thành công");
-    }
-
     @Operation(summary = "Lấy danh sách đơn vị tính với phân trang")
     @GetMapping("/list")
-    public ResultMessage<UnitListResponse> getList(@ModelAttribute UnitListRequest request) {
-        UnitListResponse response = unitAppService.getList(request);
+    public ResultMessage<UnitListResponseNew> getList(@ModelAttribute UnitListRequestNew request) {
+        UnitListResponseNew response = unitAppService.getList(request);
         return ResultUtil.data(response, "Lấy danh sách đơn vị tính thành công");
     }
 

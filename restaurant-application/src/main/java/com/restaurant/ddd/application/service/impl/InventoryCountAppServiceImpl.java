@@ -448,21 +448,18 @@ public class InventoryCountAppServiceImpl implements InventoryCountAppService {
         dto.setTransactionDate(entity.getTransactionDate());
         dto.setRemainingQuantity(entity.getRemainingQuantity());
         
-        // Load material and get unitId from material if ledger doesn't have it
+        // Load material name and unit info
         materialRepository.findById(entity.getMaterialId()).ifPresent(material -> {
             dto.setMaterialName(material.getName());
-            
-            // Use ledger's unitId if available, otherwise use material's default unitId
-            UUID unitId = entity.getUnitId() != null ? entity.getUnitId() : material.getUnitId();
-            dto.setUnitId(unitId);
-            
-            // Load unit name
-            if (unitId != null) {
-                unitRepository.findById(unitId).ifPresent(unit -> {
-                    dto.setUnitName(unit.getName());
-                });
-            }
         });
+        
+        // Load unit name from entity's unitId
+        if (entity.getUnitId() != null) {
+            dto.setUnitId(entity.getUnitId());
+            unitRepository.findById(entity.getUnitId()).ifPresent(unit -> {
+                dto.setUnitName(unit.getName());
+            });
+        }
         
         return dto;
     }

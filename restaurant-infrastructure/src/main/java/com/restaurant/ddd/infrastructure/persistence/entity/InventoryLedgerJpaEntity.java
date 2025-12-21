@@ -56,6 +56,19 @@ public class InventoryLedgerJpaEntity {
     @Column(name = "BATCH_NUMBER")
     private String batchNumber;
 
+    // Unit conversion snapshot fields
+    @Column(name = "original_unit_id", columnDefinition = "UUID")
+    private UUID originalUnitId;
+
+    @Column(name = "original_quantity", precision = 18, scale = 3)
+    private BigDecimal originalQuantity;
+
+    @Column(name = "base_unit_id", columnDefinition = "UUID")
+    private UUID baseUnitId;
+
+    @Column(name = "conversion_factor", precision = 18, scale = 6)
+    private BigDecimal conversionFactor;
+
     @Column(name = "CREATED_DATE")
     private LocalDateTime createdDate;
 }

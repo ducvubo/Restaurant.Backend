@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 @Component
 public class InventoryLedgerDataAccessMapper {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(InventoryLedgerDataAccessMapper.class);
+
     public InventoryLedger inventoryLedgerJpaEntityToInventoryLedger(InventoryLedgerJpaEntity entity) {
         if (entity == null) return null;
         return new InventoryLedger()
@@ -27,11 +29,20 @@ public class InventoryLedgerDataAccessMapper {
                 .setRemainingQuantity(entity.getRemainingQuantity())
                 .setStatus(entity.getStatus())
                 .setBatchNumber(entity.getBatchNumber())
-                .setCreatedDate(entity.getCreatedDate());
+                .setCreatedDate(entity.getCreatedDate())
+                // Unit conversion fields
+                .setOriginalUnitId(entity.getOriginalUnitId())
+                .setOriginalQuantity(entity.getOriginalQuantity())
+                .setBaseUnitId(entity.getBaseUnitId())
+                .setConversionFactor(entity.getConversionFactor());
     }
 
     public InventoryLedgerJpaEntity inventoryLedgerToInventoryLedgerJpaEntity(InventoryLedger domain) {
         if (domain == null) return null;
+        
+        log.info("[MAPPER] Input domain - originalUnitId: {}, baseUnitId: {}, convFactor: {}, originalQty: {}",
+            domain.getOriginalUnitId(), domain.getBaseUnitId(), domain.getConversionFactor(), domain.getOriginalQuantity());
+        
         InventoryLedgerJpaEntity entity = new InventoryLedgerJpaEntity();
         entity.setId(domain.getId());
         entity.setWarehouseId(domain.getWarehouseId());
@@ -47,6 +58,15 @@ public class InventoryLedgerDataAccessMapper {
         entity.setStatus(domain.getStatus());
         entity.setBatchNumber(domain.getBatchNumber());
         entity.setCreatedDate(domain.getCreatedDate());
+        // Unit conversion fields
+        entity.setOriginalUnitId(domain.getOriginalUnitId());
+        entity.setOriginalQuantity(domain.getOriginalQuantity());
+        entity.setBaseUnitId(domain.getBaseUnitId());
+        entity.setConversionFactor(domain.getConversionFactor());
+        
+        log.info("[MAPPER] Output entity - originalUnitId: {}, baseUnitId: {}, convFactor: {}, originalQty: {}",
+            entity.getOriginalUnitId(), entity.getBaseUnitId(), entity.getConversionFactor(), entity.getOriginalQuantity());
+        
         return entity;
     }
 

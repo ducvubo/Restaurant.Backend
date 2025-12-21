@@ -89,4 +89,9 @@ public class InventoryLedgerRepositoryImpl implements InventoryLedgerRepository 
                 pageable
         ).map(inventoryLedgerDataAccessMapper::inventoryLedgerJpaEntityToInventoryLedger);
     }
+    
+    @Override
+    public long countByMaterialIdAndOriginalUnitId(UUID materialId, UUID unitId) {
+        return inventoryLedgerJpaRepository.countByMaterialIdAndOriginalUnitId(materialId, unitId);
+    }
 }

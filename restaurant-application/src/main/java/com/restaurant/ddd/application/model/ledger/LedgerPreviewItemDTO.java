@@ -9,6 +9,7 @@ import java.util.UUID;
 public class LedgerPreviewItemDTO {
     private UUID materialId;
     private String materialName;
+    private String baseUnitSymbol;  // Base unit symbol for display
     private List<LedgerPreviewBatchDTO> batches;
     private BigDecimal totalQuantity;
     private BigDecimal totalAmount;

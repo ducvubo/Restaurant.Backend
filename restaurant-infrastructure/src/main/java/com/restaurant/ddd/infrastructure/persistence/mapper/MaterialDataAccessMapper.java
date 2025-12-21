@@ -19,7 +19,6 @@ public class MaterialDataAccessMapper {
                 .setName(entity.getName())
                 .setCategory(entity.getCategory())
                 .setCategoryId(entity.getCategoryId())
-                .setUnitId(entity.getUnitId())
                 .setUnitPrice(entity.getUnitPrice())
                 .setMinStockLevel(entity.getMinStockLevel())
                 .setMaxStockLevel(entity.getMaxStockLevel())
@@ -39,7 +38,6 @@ public class MaterialDataAccessMapper {
         entity.setName(material.getName());
         entity.setCategory(material.getCategory());
         entity.setCategoryId(material.getCategoryId());
-        entity.setUnitId(material.getUnitId());
         entity.setUnitPrice(material.getUnitPrice());
         entity.setMinStockLevel(material.getMinStockLevel());
         entity.setMaxStockLevel(material.getMaxStockLevel());

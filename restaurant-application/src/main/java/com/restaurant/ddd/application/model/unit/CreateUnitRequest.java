@@ -2,9 +2,6 @@ package com.restaurant.ddd.application.model.unit;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
-import java.util.UUID;
-
 /**
  * Request for creating Unit
  */
@@ -12,8 +9,5 @@ import java.util.UUID;
 public class CreateUnitRequest {
     private String code;
     private String name;
-    private String symbol;
-    private UUID baseUnitId;
-    private BigDecimal conversionRate;
     private String description;
 }

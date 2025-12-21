@@ -25,8 +25,8 @@ public class MaterialJpaEntity extends BaseJpaEntity {
     @Column(name = "CATEGORY_ID")
     private UUID categoryId;
 
-    @Column(name = "UNIT_ID")
-    private UUID unitId;
+//    @Column(name = "UNIT_ID")
+//    private UUID unitId;
 
     @Column(name = "UNIT_PRICE")
     private BigDecimal unitPrice;

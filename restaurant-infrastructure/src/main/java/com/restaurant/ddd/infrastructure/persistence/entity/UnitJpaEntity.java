@@ -9,11 +9,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.math.BigDecimal;
-import java.util.UUID;
-
 /**
  * JPA Entity for Unit
+ * Note: Unit conversions are managed in separate unit_conversion table
  */
 @Entity
 @Table(name = "UNITS")
@@ -29,15 +27,6 @@ public class UnitJpaEntity extends BaseJpaEntity {
 
     @Column(name = "NAME", nullable = false, length = 100)
     private String name;
-
-    @Column(name = "SYMBOL", length = 20)
-    private String symbol;
-
-    @Column(name = "BASE_UNIT_ID", columnDefinition = "UUID")
-    private UUID baseUnitId;
-
-    @Column(name = "CONVERSION_RATE", precision = 15, scale = 4)
-    private BigDecimal conversionRate;
 
     @Column(name = "DESCRIPTION", columnDefinition = "TEXT")
     private String description;

@@ -106,6 +106,15 @@ public class MaterialCategoryServiceImpl implements MaterialCategoryService {
     }
 
     @Override
+    public ResultMessage<List<MaterialCategoryDTO>> getAll() {
+        List<MaterialCategoryDTO> categories = repository.findAll().stream()
+                .filter(c -> c.getStatus() == DataStatus.ACTIVE)
+                .map(MaterialCategoryMapper::toDTO)
+                .collect(Collectors.toList());
+        return new ResultMessage<>(ResultCode.SUCCESS, "Lấy danh sách thành công", categories);
+    }
+
+    @Override
     @Transactional
     public ResultMessage<String> delete(UUID id) {
         if (repository.findById(id).isEmpty()) {

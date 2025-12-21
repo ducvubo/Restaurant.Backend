@@ -31,6 +31,7 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
     private final MaterialRepository materialRepository;
     private final UnitRepository unitRepository;
     private final UserRepository userRepository;
+    private final com.restaurant.ddd.application.service.UnitConversionService unitConversionService;
 
     @Override
     @Transactional
@@ -264,6 +265,16 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
         if (transaction.getAdjustmentType() == AdjustmentType.INCREASE) {
             // Điều chỉnh TĂNG: Tạo ledger mới
             for (AdjustmentItem item : items) {
+                // Get base unit for material
+                UUID baseUnitId = unitConversionService.getBaseUnit(item.getMaterialId());
+                
+                // Get conversion factor
+                BigDecimal conversionFactor = unitConversionService.getConversionFactor(
+                    item.getUnitId(), baseUnitId);
+                
+                // Convert quantity to base unit
+                BigDecimal baseQuantity = item.getQuantity().multiply(conversionFactor);
+                
                 InventoryLedger ledger = new InventoryLedger();
                 ledger.setId(UUID.randomUUID());
                 ledger.setWarehouseId(transaction.getWarehouseId());
@@ -271,9 +282,19 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
                 ledger.setTransactionId(transaction.getId());
                 ledger.setTransactionCode(transaction.getTransactionCode());
                 ledger.setTransactionDate(transaction.getTransactionDate());
-                ledger.setQuantity(item.getQuantity());
-                ledger.setRemainingQuantity(item.getQuantity());
-                ledger.setUnitId(item.getUnitId());
+                
+                // Original info (user input)
+                ledger.setOriginalUnitId(item.getUnitId());
+                ledger.setOriginalQuantity(item.getQuantity());
+                
+                // Base unit info (snapshot)
+                ledger.setBaseUnitId(baseUnitId);
+                ledger.setConversionFactor(conversionFactor);
+                
+                // Converted quantity
+                ledger.setQuantity(baseQuantity);
+                ledger.setRemainingQuantity(baseQuantity);
+                ledger.setUnitId(baseUnitId);
                 ledger.setUnitPrice(BigDecimal.ZERO); // Adjustment has no price
                 ledger.setInventoryMethod(InventoryMethod.FIFO);
                 ledger.setStatus(DataStatus.ACTIVE);
@@ -284,19 +305,35 @@ public class AdjustmentTransactionAppServiceImpl implements AdjustmentTransactio
         } else if (transaction.getAdjustmentType() == AdjustmentType.DECREASE) {
             // Điều chỉnh GIẢM: Validate và dùng FIFO
             for (AdjustmentItem item : items) {
-                BigDecimal remainingQty = item.getQuantity();
+                // Convert item quantity to base unit for FIFO deduction
+                UUID baseUnitId = unitConversionService.getBaseUnit(item.getMaterialId());
+                BigDecimal baseQuantity = item.getQuantity();
+                
+                if (item.getUnitId() != null && !item.getUnitId().equals(baseUnitId)) {
+                    try {
+                        BigDecimal conversionFactor = unitConversionService.getConversionFactor(
+                            item.getUnitId(), baseUnitId);
+                        baseQuantity = item.getQuantity().multiply(conversionFactor);
+                    } catch (IllegalArgumentException e) {
+                        return new ResultMessage<>(ResultCode.ERROR,
+                            "Không tìm thấy hệ số chuyển đổi cho đơn vị của item: " + item.getMaterialId(),
+                            null);
+                    }
+                }
+                
+                BigDecimal remainingQty = baseQuantity;
                 BigDecimal totalAvailable = inventoryLedgerRepository.getCurrentStock(
                     transaction.getWarehouseId(), 
                     item.getMaterialId()
                 );
                 
                 // Validate stock BEFORE processing
-                if (item.getQuantity().compareTo(totalAvailable) > 0) {
+                if (baseQuantity.compareTo(totalAvailable) > 0) {
                     Material material = materialRepository.findById(item.getMaterialId()).orElse(null);
                     String materialName = material != null ? material.getName() : item.getMaterialId().toString();
                     return new ResultMessage<>(ResultCode.ERROR, 
                         String.format("Không đủ tồn kho để chốt phiếu điều chỉnh giảm!\nNguyên liệu: '%s'\nTồn kho hiện tại: %s\nYêu cầu giảm: %s", 
-                            materialName, totalAvailable, item.getQuantity()), 
+                            materialName, totalAvailable, baseQuantity), 
                         null);
                 }
                 

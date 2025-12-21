@@ -34,10 +34,6 @@ public class MaterialAppServiceImpl implements MaterialAppService {
             return new ResultMessage<>(ResultCode.ERROR, "Mã nguyên vật liệu đã tồn tại", null);
         }
 
-        if (request.getUnitId() != null && unitRepository.findById(request.getUnitId()).isEmpty()) {
-            return new ResultMessage<>(ResultCode.ERROR, "Đơn vị tính không tồn tại", null);
-        }
-
         if (request.getCategoryId() != null && materialCategoryRepository.findById(request.getCategoryId()).isEmpty()) {
             return new ResultMessage<>(ResultCode.ERROR, "Danh mục không tồn tại", null);
         }
@@ -47,7 +43,6 @@ public class MaterialAppServiceImpl implements MaterialAppService {
         material.setName(request.getName());
         material.setCategory(request.getCategory());
         material.setCategoryId(request.getCategoryId());
-        material.setUnitId(request.getUnitId());
         material.setUnitPrice(request.getUnitPrice());
         material.setMinStockLevel(request.getMinStockLevel());
         material.setMaxStockLevel(request.getMaxStockLevel());
@@ -80,12 +75,6 @@ public class MaterialAppServiceImpl implements MaterialAppService {
             }
         }
 
-        if (request.getUnitId() != null && !request.getUnitId().equals(material.getUnitId())) {
-             if (unitRepository.findById(request.getUnitId()).isEmpty()) {
-                return new ResultMessage<>(ResultCode.ERROR, "Đơn vị tính không tồn tại", null);
-            }
-        }
-
         if (request.getCategoryId() != null && !request.getCategoryId().equals(material.getCategoryId())) {
              if (materialCategoryRepository.findById(request.getCategoryId()).isEmpty()) {
                 return new ResultMessage<>(ResultCode.ERROR, "Danh mục không tồn tại", null);
@@ -96,7 +85,6 @@ public class MaterialAppServiceImpl implements MaterialAppService {
         material.setName(request.getName());
         material.setCategory(request.getCategory());
         material.setCategoryId(request.getCategoryId());
-        material.setUnitId(request.getUnitId());
         material.setUnitPrice(request.getUnitPrice());
         material.setMinStockLevel(request.getMinStockLevel());
         material.setMaxStockLevel(request.getMaxStockLevel());
@@ -186,9 +174,6 @@ public class MaterialAppServiceImpl implements MaterialAppService {
     private MaterialDTO toDTO(Material material) {
         MaterialDTO dto = MaterialMapper.toDTO(material);
         if (dto != null) {
-             if (dto.getUnitId() != null) {
-                unitRepository.findById(dto.getUnitId()).ifPresent(unit -> dto.setUnitName(unit.getName()));
-             }
              if (dto.getCategoryId() != null) {
                  materialCategoryRepository.findById(dto.getCategoryId()).ifPresent(cat -> dto.setCategoryName(cat.getName()));
              }

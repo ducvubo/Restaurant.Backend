@@ -17,9 +17,6 @@ public class UnitMapper {
         dto.setId(unit.getId());
         dto.setCode(unit.getCode());
         dto.setName(unit.getName());
-        dto.setSymbol(unit.getSymbol());
-        dto.setBaseUnitId(unit.getBaseUnitId());
-        dto.setConversionRate(unit.getConversionRate());
         dto.setDescription(unit.getDescription());
         dto.setStatus(unit.getStatus() != null ? unit.getStatus().code() : null);
         dto.setCreatedBy(unit.getCreatedBy());

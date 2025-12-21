@@ -13,6 +13,7 @@ import com.restaurant.ddd.domain.model.*;
 import com.restaurant.ddd.domain.respository.*;
 import com.restaurant.ddd.infrastructure.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StockInAppServiceImpl implements StockInAppService {
@@ -39,6 +41,7 @@ public class StockInAppServiceImpl implements StockInAppService {
     private final UnitRepository unitRepository;
     private final InventoryLedgerRepository inventoryLedgerRepository;
     private final UserRepository userRepository;
+    private final com.restaurant.ddd.application.service.UnitConversionService unitConversionService;
 
     @Override
     @Transactional
@@ -289,6 +292,20 @@ public class StockInAppServiceImpl implements StockInAppService {
 
     // Helper methods
     private void createInventoryLedger(StockInTransaction transaction, StockInItem item) {
+        // Get base unit for material
+        UUID baseUnitId = unitConversionService.getBaseUnit(item.getMaterialId());
+        
+        // Get conversion factor
+        BigDecimal conversionFactor = unitConversionService.getConversionFactor(
+            item.getUnitId(), baseUnitId);
+        
+        // Convert quantity to base unit
+        BigDecimal baseQuantity = item.getQuantity().multiply(conversionFactor);
+        
+        log.info("[CREATE_LEDGER] Creating ledger for material: {}", item.getMaterialId());
+        log.info("[CREATE_LEDGER] originalUnitId: {}, originalQty: {}", item.getUnitId(), item.getQuantity());
+        log.info("[CREATE_LEDGER] baseUnitId: {}, conversionFactor: {}, baseQty: {}", baseUnitId, conversionFactor, baseQuantity);
+        
         InventoryLedger ledger = new InventoryLedger()
                 .setId(UUID.randomUUID())
                 .setWarehouseId(transaction.getWarehouseId())
@@ -297,14 +314,29 @@ public class StockInAppServiceImpl implements StockInAppService {
                 .setTransactionCode(transaction.getTransactionCode())
                 .setTransactionDate(transaction.getTransactionDate())
                 .setInventoryMethod(InventoryMethod.FIFO)
-                .setQuantity(item.getQuantity())
-                .setUnitId(item.getUnitId())
+                
+                // Original info (user input)
+                .setOriginalUnitId(item.getUnitId())
+                .setOriginalQuantity(item.getQuantity())
+                
+                // Base unit info (snapshot)
+                .setBaseUnitId(baseUnitId)
+                .setConversionFactor(conversionFactor)
+                
+                // Converted quantity
+                .setQuantity(baseQuantity)
+                .setUnitId(baseUnitId)  // Store as base unit
                 .setUnitPrice(item.getUnitPrice())
-                .setRemainingQuantity(item.getQuantity())
+                .setRemainingQuantity(baseQuantity)
                 .setStatus(DataStatus.ACTIVE)
                 .setCreatedDate(LocalDateTime.now());
         
+        log.info("[CREATE_LEDGER] Before save - ledger.originalUnitId: {}, baseUnitId: {}, conversionFactor: {}", 
+            ledger.getOriginalUnitId(), ledger.getBaseUnitId(), ledger.getConversionFactor());
+        
         inventoryLedgerRepository.save(ledger);
+        
+        log.info("[CREATE_LEDGER] Saved ledger with id: {}", ledger.getId());
     }
 
     private StockTransactionDTO toDTO(StockInTransaction transaction) {

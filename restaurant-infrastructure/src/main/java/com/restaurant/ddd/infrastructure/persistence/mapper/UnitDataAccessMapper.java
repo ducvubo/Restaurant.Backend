@@ -22,9 +22,6 @@ public class UnitDataAccessMapper {
         unit.setId(entity.getId());
         unit.setCode(entity.getCode());
         unit.setName(entity.getName());
-        unit.setSymbol(entity.getSymbol());
-        unit.setBaseUnitId(entity.getBaseUnitId());
-        unit.setConversionRate(entity.getConversionRate());
         unit.setDescription(entity.getDescription());
         unit.setStatus(entity.getStatus());
         unit.setCreatedBy(entity.getCreatedBy());
@@ -47,9 +44,6 @@ public class UnitDataAccessMapper {
         entity.setId(unit.getId());
         entity.setCode(unit.getCode());
         entity.setName(unit.getName());
-        entity.setSymbol(unit.getSymbol());
-        entity.setBaseUnitId(unit.getBaseUnitId());
-        entity.setConversionRate(unit.getConversionRate());
         entity.setDescription(unit.getDescription());
         entity.setStatus(unit.getStatus());
         entity.setCreatedBy(unit.getCreatedBy());

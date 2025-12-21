@@ -21,8 +21,5 @@ public interface UnitJpaRepository extends JpaRepository<UnitJpaEntity, UUID>, J
     
     List<UnitJpaEntity> findByStatus(DataStatus status);
     
-    @Query("SELECT u FROM UnitJpaEntity u WHERE u.baseUnitId IS NULL")
-    List<UnitJpaEntity> findBaseUnits();
-    
     boolean existsByCode(String code);
 }
