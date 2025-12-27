@@ -97,6 +97,9 @@ public class EnumToJsExporter {
         enumModels.add(parseEnum(StockOutType.class));
         enumModels.add((parseEnum(StockInType.class)));
         enumModels.add((parseEnum(AdjustmentType.class)));
+        enumModels.add((parseEnum(WorkflowType.class)));
+        enumModels.add((parseEnum(WorkflowActionType.class)));
+        enumModels.add((parseEnum(WorkflowStepType.class)));
 
         return enumModels;
     }
