@@ -100,6 +100,12 @@ public class EnumToJsExporter {
         enumModels.add((parseEnum(WorkflowType.class)));
         enumModels.add((parseEnum(WorkflowActionType.class)));
         enumModels.add((parseEnum(WorkflowStepType.class)));
+        
+        // Purchasing Module Enums
+        enumModels.add((parseEnum(PurchaseRequisitionStatus.class)));
+        enumModels.add((parseEnum(RfqStatus.class)));
+        enumModels.add((parseEnum(PurchaseOrderStatus.class)));
+        enumModels.add((parseEnum(PurchasePriority.class)));
 
         return enumModels;
     }

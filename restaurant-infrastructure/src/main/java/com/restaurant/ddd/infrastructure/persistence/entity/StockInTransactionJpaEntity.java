@@ -48,6 +48,9 @@ public class StockInTransactionJpaEntity extends BaseJpaEntity {
     @Column(name = "RELATED_TRANSACTION_ID")
     private UUID relatedTransactionId;
 
+    @Column(name = "PURCHASE_ORDER_ID")
+    private UUID purchaseOrderId;
+
     @Column(name = "IS_LOCKED")
     private Boolean isLocked;
 }

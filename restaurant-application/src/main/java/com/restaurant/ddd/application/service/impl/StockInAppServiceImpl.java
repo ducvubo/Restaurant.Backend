@@ -67,6 +67,7 @@ public class StockInAppServiceImpl implements StockInAppService {
                 .setReferenceNumber(request.getReferenceNumber())
                 .setNotes(request.getNotes())
                 .setReceivedBy(request.getReceivedBy())
+                .setPurchaseOrderId(request.getPurchaseOrderId())
                 .setCreatedBy(SecurityUtils.getCurrentUserId())
                 .setStatus(DataStatus.ACTIVE)
                 .setIsLocked(false)

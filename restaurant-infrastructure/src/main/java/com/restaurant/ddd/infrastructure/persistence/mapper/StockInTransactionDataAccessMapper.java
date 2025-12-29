@@ -23,6 +23,7 @@ public class StockInTransactionDataAccessMapper {
         entity.setReceivedBy(domain.getReceivedBy());
         entity.setStockInType(domain.getStockInType());
         entity.setRelatedTransactionId(domain.getRelatedTransactionId());
+        entity.setPurchaseOrderId(domain.getPurchaseOrderId());
         entity.setIsLocked(domain.getIsLocked());
         entity.setStatus(domain.getStatus());
         entity.setCreatedBy(domain.getCreatedBy());
@@ -48,6 +49,7 @@ public class StockInTransactionDataAccessMapper {
                 .setReceivedBy(entity.getReceivedBy())
                 .setStockInType(entity.getStockInType())
                 .setRelatedTransactionId(entity.getRelatedTransactionId())
+                .setPurchaseOrderId(entity.getPurchaseOrderId())
                 .setIsLocked(entity.getIsLocked())
                 .setStatus(entity.getStatus())
                 .setCreatedBy(entity.getCreatedBy())

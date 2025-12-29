@@ -17,6 +17,7 @@ public class StockInRequest {
     private String referenceNumber;
     private String notes;
     private UUID receivedBy;  // Người nhập kho
-    private Integer stockInType; // 1=Nhập từ NCC, 2=Chuyển kho nội bộ
+    private Integer stockInType; // 1=Nhập từ NCC, 2=Chuyển kho nội bộ, 3=Nhập từ PO
+    private UUID purchaseOrderId; // Reference to purchase order (for type 3)
     private List<StockInItemRequest> items;  // Danh sách nguyên liệu
 }

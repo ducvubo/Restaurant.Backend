@@ -18,8 +18,9 @@ public class StockInTransaction {
     private String transactionCode;
     private UUID warehouseId;
     private UUID supplierId;
-    private Integer stockInType; // 1=Nhập từ NCC, 2=Chuyển kho nội bộ
+    private Integer stockInType; // 1=Nhập từ NCC, 2=Chuyển kho nội bộ, 3=Nhập từ PO
     private UUID relatedTransactionId; // Link to source stock-out for internal transfers
+    private UUID purchaseOrderId; // Link to purchase order when receiving from PO
     private BigDecimal totalAmount;
     private LocalDateTime transactionDate;
     private String referenceNumber;
