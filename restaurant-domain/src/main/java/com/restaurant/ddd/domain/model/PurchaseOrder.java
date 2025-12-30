@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -149,8 +150,12 @@ public class PurchaseOrder {
         if (this.totalAmount == null || this.totalAmount.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
         }
-        if (this.receivedAmount == null) return BigDecimal.ZERO;
-        return this.receivedAmount.divide(this.totalAmount, 4, BigDecimal.ROUND_HALF_UP)
-                .multiply(new BigDecimal("100"));
+        if (this.receivedAmount == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return this.receivedAmount
+                .divide(this.totalAmount, 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
     }
 }

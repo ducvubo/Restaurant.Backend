@@ -2,6 +2,7 @@ package com.restaurant.ddd.controller.http;
 
 import com.restaurant.ddd.application.model.common.PageResponse;
 import com.restaurant.ddd.application.model.purchasing.*;
+import com.restaurant.ddd.application.model.workflow.*;
 import com.restaurant.ddd.application.service.PurchaseRequisitionAppService;
 import com.restaurant.ddd.controller.http.model.enums.ResultUtil;
 import com.restaurant.ddd.controller.http.model.vo.ResultMessage;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -154,4 +156,45 @@ public class PurchaseRequisitionController {
             return ResponseEntity.ok(ResultUtil.error(ResultCode.ERROR.code(), e.getMessage()));
         }
     }
+    
+    // ===== Workflow APIs =====
+    
+    @Operation(summary = "Lấy trạng thái workflow hiện tại")
+    @GetMapping("/workflow-state")
+    public ResponseEntity<ResultMessage<WorkflowStateDTO>> getWorkflowState(@RequestParam("id") UUID id) {
+        try {
+            WorkflowStateDTO result = requisitionService.getWorkflowState(id);
+            return ResponseEntity.ok(ResultUtil.data(result, "Lấy trạng thái workflow thành công"));
+        } catch (Exception e) {
+            log.error("Error getting workflow state", e);
+            return ResponseEntity.ok(ResultUtil.error(ResultCode.ERROR.code(), e.getMessage()));
+        }
+    }
+    
+    @Operation(summary = "Thực hiện action trong workflow (chuyển bước)")
+    @PostMapping("/workflow-action")
+    public ResponseEntity<ResultMessage<PurchaseRequisitionDTO>> performWorkflowAction(
+            @RequestParam("id") UUID id,
+            @RequestBody WorkflowActionRequest request) {
+        try {
+            PurchaseRequisitionDTO result = requisitionService.performWorkflowAction(id, request);
+            return ResponseEntity.ok(ResultUtil.data(result, "Thực hiện bước thành công"));
+        } catch (Exception e) {
+            log.error("Error performing workflow action", e);
+            return ResponseEntity.ok(ResultUtil.error(ResultCode.ERROR.code(), e.getMessage()));
+        }
+    }
+    
+    @Operation(summary = "Lấy lịch sử thao tác workflow")
+    @GetMapping("/history")
+    public ResponseEntity<ResultMessage<List<WorkflowActivityDTO>>> getHistory(@RequestParam("id") UUID id) {
+        try {
+            List<WorkflowActivityDTO> result = requisitionService.getHistory(id);
+            return ResponseEntity.ok(ResultUtil.data(result, "Lấy lịch sử thành công"));
+        } catch (Exception e) {
+            log.error("Error getting workflow history", e);
+            return ResponseEntity.ok(ResultUtil.error(ResultCode.ERROR.code(), e.getMessage()));
+        }
+    }
 }
+

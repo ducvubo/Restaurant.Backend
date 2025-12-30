@@ -51,4 +51,15 @@ public class PurchaseRequisitionJpaEntity extends BaseJpaEntity {
 
     @Column(name = "REJECTION_REASON", columnDefinition = "TEXT")
     private String rejectionReason;
+    
+    // Trạng thái yêu cầu (DRAFT=1, PENDING=2, APPROVED=3, REJECTED=4, CONVERTED=5, CANCELLED=-1)
+    @Column(name = "REQUISITION_STATUS")
+    private Integer requisitionStatus;
+    
+    // Workflow fields
+    @Column(name = "WORKFLOW_ID")
+    private UUID workflowId;
+    
+    @Column(name = "WORKFLOW_STEP", length = 100)
+    private String workflowStep;
 }

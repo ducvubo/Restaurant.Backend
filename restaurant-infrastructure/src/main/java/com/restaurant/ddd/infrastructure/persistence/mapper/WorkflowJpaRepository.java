@@ -36,12 +36,13 @@ public interface WorkflowJpaRepository extends JpaRepository<WorkflowJpaEntity, 
     Optional<String> getMaxVersion(@Param("workflowType") int workflowType);
     
     /**
-     * Tìm workflows với filters
+     * Tìm workflows với filters và sort theo version mới nhất
      */
     @Query("SELECT w FROM WorkflowJpaEntity w WHERE " +
            "(:workflowType IS NULL OR w.workflowType = :workflowType) AND " +
            "(:status IS NULL OR w.status = :status) AND " +
-           "(:keyword IS NULL OR :keyword = '' OR LOWER(w.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+           "(:keyword IS NULL OR :keyword = '' OR LOWER(w.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "ORDER BY w.createdDate DESC")
     Page<WorkflowJpaEntity> findAllWithFilters(
             @Param("workflowType") Integer workflowType,
             @Param("status") Integer status,

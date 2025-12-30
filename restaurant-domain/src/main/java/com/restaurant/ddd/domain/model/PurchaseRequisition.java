@@ -32,6 +32,11 @@ public class PurchaseRequisition {
     private String approvedByName; // For display
     private LocalDateTime approvedDate;
     private String rejectionReason;
+    
+    // Workflow fields
+    private UUID workflowId;         // ID của workflow được áp dụng
+    private String workflowStep;     // Bước hiện tại trong BPMN (stepId)
+    
     private UUID createdBy;
     private UUID updatedBy;
     private LocalDateTime createdDate;

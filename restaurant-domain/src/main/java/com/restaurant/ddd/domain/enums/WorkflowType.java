@@ -1,5 +1,8 @@
 package com.restaurant.ddd.domain.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Enum định nghĩa các loại Workflow trong hệ thống nhà hàng
  */
@@ -31,6 +34,7 @@ public enum WorkflowType  implements CodeEnum{
     }
 
     @Override
+    @JsonValue
     public Integer code() {
         return this.code;
     }
@@ -39,11 +43,13 @@ public enum WorkflowType  implements CodeEnum{
         return this.message;
     }
 
+    @JsonCreator
     public static WorkflowType fromCode(Integer code) {
         if (code == null) return null;
         for (WorkflowType type : WorkflowType.values()) {
             if (type.code.equals(code)) return type;
         }
-        throw new IllegalArgumentException("Invalid WarehouseType code: " + code);
+        throw new IllegalArgumentException("Invalid WorkflowType code: " + code);
     }
 }
+

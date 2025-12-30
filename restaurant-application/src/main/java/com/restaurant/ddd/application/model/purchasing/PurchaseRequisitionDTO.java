@@ -30,6 +30,13 @@ public class PurchaseRequisitionDTO {
     private LocalDateTime approvedDate;
     private String rejectionReason;
     private BigDecimal totalEstimatedAmount;
+    
+    // Workflow fields
+    private UUID workflowId;
+    private String workflowStep;
+    private String workflowStepName;
+    private String requiredPolicies; // Tên các quyền cần có cho bước hiện tại
+    
     private UUID createdBy;
     private UUID updatedBy;
     private LocalDateTime createdDate;

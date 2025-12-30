@@ -2,7 +2,9 @@ package com.restaurant.ddd.application.service;
 
 import com.restaurant.ddd.application.model.common.PageResponse;
 import com.restaurant.ddd.application.model.purchasing.*;
+import com.restaurant.ddd.application.model.workflow.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -54,4 +56,22 @@ public interface PurchaseRequisitionAppService {
      * Delete requisition (only draft)
      */
     void delete(UUID id);
+    
+    // ===== Workflow Methods =====
+    
+    /**
+     * Lấy trạng thái workflow hiện tại
+     */
+    WorkflowStateDTO getWorkflowState(UUID id);
+    
+    /**
+     * Thực hiện action trong workflow (chuyển bước)
+     */
+    PurchaseRequisitionDTO performWorkflowAction(UUID id, WorkflowActionRequest request);
+    
+    /**
+     * Lấy lịch sử thao tác workflow
+     */
+    List<WorkflowActivityDTO> getHistory(UUID id);
 }
+

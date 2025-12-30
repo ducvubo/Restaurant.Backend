@@ -129,13 +129,17 @@ public class WorkflowController {
     @GetMapping("/get-active-by-type")
     @Operation(summary = "Lấy quy trình đang kích hoạt", description = "Lấy quy trình đang kích hoạt theo loại")
     public ResponseEntity<ResultMessage<WorkflowDTO>> getActiveByType(
-            @RequestParam(name = "workflowType") WorkflowType workflowType) {
+            @RequestParam(name = "workflowType") Integer workflowTypeCode) {
         try {
+            WorkflowType workflowType = WorkflowType.fromCode(workflowTypeCode);
             var result = workflowAppService.getActiveByType(workflowType);
             if (result.getCode() == ResultCode.SUCCESS) {
                 return ResponseEntity.ok(ResultUtil.data(result.getData(), result.getMessage()));
             }
             return ResponseEntity.ok(ResultUtil.error(ResultCode.ERROR.code(), result.getMessage()));
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid workflow type: {}", workflowTypeCode);
+            return ResponseEntity.ok(ResultUtil.error(ResultCode.ERROR.code(), "Loại quy trình không hợp lệ: " + workflowTypeCode));
         } catch (Exception e) {
             log.error("Error getting active workflow: {}", e.getMessage(), e);
             return ResponseEntity.ok(ResultUtil.error(ResultCode.ERROR.code(), "Lấy quy trình thất bại: " + e.getMessage()));

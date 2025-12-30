@@ -34,10 +34,13 @@ public class PurchaseRequisitionDataAccessMapper {
         pr.setRequiredDate(entity.getRequiredDate());
         pr.setPriority(PurchasePriority.fromCode(entity.getPriority()));
         pr.setNotes(entity.getNotes());
-        pr.setStatus(PurchaseRequisitionStatus.fromCode(entity.getStatus() != null ? entity.getStatus().code() : null));
+        // Dùng requisitionStatus thay vì status của BaseJpaEntity
+        pr.setStatus(PurchaseRequisitionStatus.fromCode(entity.getRequisitionStatus()));
         pr.setApprovedBy(entity.getApprovedBy());
         pr.setApprovedDate(entity.getApprovedDate());
         pr.setRejectionReason(entity.getRejectionReason());
+        pr.setWorkflowId(entity.getWorkflowId());
+        pr.setWorkflowStep(entity.getWorkflowStep());
         pr.setCreatedBy(entity.getCreatedBy());
         pr.setUpdatedBy(entity.getUpdatedBy());
         pr.setCreatedDate(entity.getCreatedDate());
@@ -66,14 +69,16 @@ public class PurchaseRequisitionDataAccessMapper {
         entity.setApprovedBy(pr.getApprovedBy());
         entity.setApprovedDate(pr.getApprovedDate());
         entity.setRejectionReason(pr.getRejectionReason());
+        entity.setWorkflowId(pr.getWorkflowId());
+        entity.setWorkflowStep(pr.getWorkflowStep());
         entity.setCreatedBy(pr.getCreatedBy());
         entity.setUpdatedBy(pr.getUpdatedBy());
         entity.setCreatedDate(pr.getCreatedDate());
         entity.setUpdatedDate(pr.getUpdatedDate());
         
-        // Set status using DataStatus from BaseJpaEntity
+        // Lưu requisition status riêng (không phải DataStatus của BaseJpaEntity)
         if (pr.getStatus() != null) {
-            entity.setStatus(com.restaurant.ddd.domain.enums.DataStatus.fromCode(pr.getStatus().code()));
+            entity.setRequisitionStatus(pr.getStatus().code());
         }
 
         return entity;
